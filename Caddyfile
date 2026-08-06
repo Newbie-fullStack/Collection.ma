@@ -1,0 +1,44 @@
+# FrankenPHP / Caddy configuration for Collection.ma
+# Serves the built React SPA (static) + the Laravel API on the same origin.
+# Binds on all interfaces so Fly's proxy can reach port 8080.
+
+{
+	admin off
+	log {
+		output stdout
+		level INFO
+	}
+}
+
+:8080 {
+	encode zstd gzip
+
+	# ---- Laravel API routes ----
+	handle /api/* /sanctum/* /up {
+		php_server {
+			root * /var/www/html
+		}
+	}
+
+	# ---- Uploaded media under /storage ----
+	# /storage is a symlink to storage/app/public (mounted volume)
+	handle /storage/* {
+		root * /var/www/html/storage
+		php_server {
+			root * /var/www/html
+		}
+	}
+
+	# ---- SPA static assets + client-side routing fallback ----
+	handle {
+		root * /web
+		try_files {path} {path}/ /index.html
+		file_server
+	}
+
+	header {
+		Strict-Transport-Security max-age=31536000; includeSubDomains
+		X-Content-Type-Options nosniff
+		X-Frame-Options SAMEORIGIN
+	}
+}

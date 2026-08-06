@@ -1,0 +1,39 @@
+# --- Dependencies (re-installed in the image build) ---
+node_modules
+frontend/node_modules
+vendor
+
+# --- Environment & secrets (never baked into image) ---
+.env
+.env.backup
+.env.production
+*.key
+auth.json
+
+# --- Build outputs (regenerated in-image) ---
+frontend/dist
+public/build
+public/hot
+public/storage
+storage/app/public
+storage/logs/*.log
+storage/framework/cache/*
+storage/framework/sessions/*
+storage/framework/views/*
+storage/framework/testing/*
+storage/installed
+
+# --- Misc ---
+.git
+.gitignore
+README.md
+*.log
+.phpunit.result.cache
+.phpunit.cache
+Thumbs.db
+image.png
+image copy.png
+logo-removebg.png
+logocomplet.png
+playwright-report
+test-results

@@ -1,0 +1,39 @@
+*.log
+.DS_Store
+.env
+.env.backup
+.env.production
+.phpactor.json
+.phpunit.result.cache
+/.fleet
+/.idea
+/.nova
+/.phpunit.cache
+/.vscode
+/.zed
+/auth.json
+/node_modules
+/public/build
+/public/hot
+/public/storage
+/storage/*.key
+/storage/pail
+/vendor
+Homestead.json
+Homestead.yaml
+Thumbs.db
+
+# --- Frontend (React SPA in frontend/) ---
+/frontend/node_modules
+/frontend/dist
+/frontend/.env
+playwright-report
+/frontend/test-results
+/frontend/playwright-report
+
+# --- SQLite (local dev DB) ---
+/database/database.sqlite
+/database/*.sqlite-journal
+
+# --- Fly.io ---
+.fly

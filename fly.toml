@@ -1,0 +1,51 @@
+# fly.toml app configuration file for Collection.ma
+# Generated with flyctl. App name will be assigned after `fly apps create`.
+app = "collection-ma"
+
+[build]
+  # Remote builder on Fly.io (no local Docker needed)
+  dockerfile = "Dockerfile"
+
+primary_region = "fra"  # Paris or "ams" Amsterdam — nearest to Morocco
+
+[env]
+  APP_ENV = "production"
+  APP_DEBUG = "false"
+  APP_URL = "https://collection-ma.fly.dev"
+  APP_LOCALE = "fr"
+  APP_FALLBACK_LOCALE = "fr"
+
+  DB_CONNECTION = "pgsql"
+  # The rest of DB_* are injected automatically by `fly postgres attach`.
+
+  BROADCAST_CONNECTION = "log"      # Websockets disabled for MVP
+  QUEUE_CONNECTION = "database"
+  CACHE_STORE = "database"
+  SESSION_DRIVER = "database"
+
+  FILESYSTEM_DISK = "local"
+  PLATFORM_ADMIN_USER_ID = "1"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = "stop"
+  auto_start_machines = true
+  min_machines_running = 0
+
+  [[http_service.checks]]
+    grace_period = "30s"
+    interval = "10s"
+    timeout = "3s"
+    method = "GET"
+    path = "/up"
+    tls_skip_verify = true
+
+[[mounts]]
+  source = "collection_ma_storage"
+  destination = "/var/www/storage"
+  initial_size = "2gb"
+
+[deploy]
+  # Run migrations on every deploy (idempotent)
+  release_command = "php artisan migrate --force"
