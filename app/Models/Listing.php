@@ -139,4 +139,12 @@ class Listing extends Model
             'minutes' => $diff->i,
         ];
     }
+
+    public function resolveRouteBinding(mixed $value, $field = null): ?Model
+    {
+        return static::query()
+            ->where('id', $value)
+            ->orWhere('numero_auto', $value)
+            ->first();
+    }
 }
