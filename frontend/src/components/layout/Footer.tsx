@@ -70,7 +70,7 @@ export function Footer() {
           {/* Logo + description */}
           <div className={cn('md:col-span-1', isAr && 'md:order-last')}>
             <Logo variant="light" size="md" />
-            <p className="mt-4 text-sm text-text-subdued leading-relaxed">
+            <p className="mt-2 text-sm text-text-subdued leading-relaxed">
               {isAr
                 ? 'السوق المغربية المخصصة لهواة الجمع. اشتر وبيع التذاكر النادرة والتحف.'
                 : 'La marketplace marocaine dediee aux collectionneurs. Achetez et vendez des pieces rares et des tresors.'}
