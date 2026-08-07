@@ -1,8 +1,9 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext';
-import { listingsApi } from '@/api';
+import { listingsApi, categoriesApi } from '@/api';
+import type { Category } from '@/types';
 import { cn } from '@/lib/utils';
 
 export function AddListingPage() {
@@ -10,8 +11,14 @@ export function AddListingPage() {
   const isAr = i18n.language === 'ar';
   const { user } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const editId = searchParams.get('edit');
+  const isEditing = !!editId && editId !== 'new';
+
   const [loading, setLoading] = useState(false);
+  const [loadingEdit, setLoadingEdit] = useState(isEditing);
   const [error, setError] = useState('');
+  const [categories, setCategories] = useState<Category[]>([]);
   const [form, setForm] = useState({
     titre: '',
     description: '',
@@ -21,6 +28,33 @@ export function AddListingPage() {
     frais_port: '',
   });
   const [photos, setPhotos] = useState<File[]>([]);
+
+  useEffect(() => {
+    categoriesApi.list()
+      .then(({ data }) => {
+        const active = (Array.isArray(data) ? data : []).filter((c) => c.active !== false);
+        active.sort((a, b) => a.ordre_affichage - b.ordre_affichage);
+        setCategories(active);
+      })
+      .catch(() => setCategories([]));
+  }, []);
+
+  useEffect(() => {
+    if (!isEditing || !editId) return;
+    listingsApi.get(Number(editId))
+      .then(({ data }) => {
+        setForm({
+          titre: data.titre || '',
+          description: data.description || '',
+          category_id: String(data.category_id ?? ''),
+          mode: data.mode || 'enchere',
+          prix_vente: data.prix_vente != null ? String(data.prix_vente) : '',
+          frais_port: data.frais_port != null ? String(data.frais_port) : '',
+        });
+      })
+      .catch(() => setError(t('commun.erreur')))
+      .finally(() => setLoadingEdit(false));
+  }, [isEditing, editId, t]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
@@ -40,6 +74,19 @@ export function AddListingPage() {
     setLoading(true);
 
     try {
+      if (isEditing) {
+        await listingsApi.update(Number(editId), {
+          titre: form.titre,
+          description: form.description,
+          category_id: form.category_id,
+          mode: form.mode,
+          prix_vente: form.prix_vente,
+          frais_port: form.frais_port || null,
+        });
+        navigate('/vendeur/objets');
+        return;
+      }
+
       const formData = new FormData();
       formData.append('titre', form.titre);
       formData.append('description', form.description);
@@ -64,52 +111,26 @@ export function AddListingPage() {
     }
   };
 
-  const categories = [
-    { id: 1, fr: 'Monnaies', ar: 'عملات' },
-    { id: 2, fr: 'Timbres', ar: 'طوابع' },
-    { id: 3, fr: 'Billets', ar: 'نقود ورقية' },
-    { id: 4, fr: 'Montres', ar: 'ساعات' },
-    { id: 5, fr: 'Cartes postales', ar: 'بطاقات بريدية' },
-    { id: 6, fr: 'Enveloppes', ar: 'ظرف' },
-    { id: 7, fr: 'Bijoux', ar: 'مجوهرات' },
-    { id: 8, fr: 'Statues', ar: 'تماثيل' },
-    { id: 9, fr: 'Céramiques', ar: 'سيراميك' },
-    { id: 10, fr: 'Machinerie', ar: 'آلات' },
-    { id: 11, fr: 'Manuscrits', ar: 'مخطوطات' },
-    { id: 12, fr: 'Livres anciens', ar: 'كتب قديمة' },
-    { id: 13, fr: 'Voitures miniatures', ar: 'سيارات مصغرة' },
-    { id: 14, fr: 'Bronzes', ar: 'برونز' },
-    { id: 15, fr: 'Habillements anciens', ar: 'ملابس قديمة' },
-    { id: 16, fr: 'Militaria', ar: 'عسكريات' },
-    { id: 17, fr: 'Cartes Pokémon', ar: 'كروت بوكيمون' },
-    { id: 18, fr: 'Collections complètes', ar: 'مجموعات كاملة' },
-    { id: 19, fr: 'Science & Technique', ar: 'علوم وتكنولوجيا' },
-    { id: 20, fr: 'Divers', ar: 'متنوع' },
-  ];
+  if (loadingEdit) {
+    return (
+      <div className="card p-6 space-y-4 animate-pulse">
+        <div className="h-6 bg-navy-hover rounded w-1/3" />
+        <div className="h-4 bg-navy-hover rounded w-1/2" />
+        <div className="h-4 bg-navy-hover rounded w-2/3" />
+      </div>
+    );
+  }
 
   return (
     <div>
       <h1 className={cn('text-2xl font-serif font-bold text-cream mb-6', isAr && 'text-right')}>
-        {t('formulaire.ajouter_objet')}
+        {isEditing ? (isAr ? 'تعديل الإعلان' : 'Modifier l\'annonce') : t('formulaire.ajouter_objet')}
       </h1>
 
       <form onSubmit={handleSubmit} className="card p-6 space-y-6">
         {error && (
           <div className="p-3 bg-red/10 text-red rounded-lg text-sm">{error}</div>
         )}
-
-        {/* Numéro auto (lecture seule) */}
-        <div>
-          <label className="block text-sm font-medium text-cream mb-1">
-            {t('formulaire.numero_auto')}
-          </label>
-          <input
-            type="text"
-            value="Généré par le serveur"
-            disabled
-            className="input-field bg-navy-hover text-text-subdued"
-          />
-        </div>
 
         {/* Titre */}
         <div>
@@ -127,24 +148,28 @@ export function AddListingPage() {
           />
         </div>
 
-        {/* Photos */}
-        <div>
-          <label className="block text-sm font-medium text-cream mb-1">
-            {t('formulaire.photos')} (max 20)
-          </label>
-          <input
-            type="file"
-            accept="image/jpeg,image/png,image/webp"
-            multiple
-            onChange={handlePhotos}
-            className="input-field file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:bg-gold file:text-white file:cursor-pointer"
-          />
-          {photos.length > 0 && (
-            <p className="text-xs text-text-subdued mt-1">
-              {photos.length} {isAr ? 'صورة محددة' : 'photo(s) sélectionnée(s)'}
-            </p>
-          )}
-        </div>
+        {!isEditing && (
+          <>
+            {/* Photos */}
+            <div>
+              <label className="block text-sm font-medium text-cream mb-1">
+                {t('formulaire.photos')} (max 20)
+              </label>
+              <input
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                multiple
+                onChange={handlePhotos}
+                className="input-field file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:bg-gold file:text-white file:cursor-pointer"
+              />
+              {photos.length > 0 && (
+                <p className="text-xs text-text-subdued mt-1">
+                  {photos.length} {isAr ? 'صورة محددة' : 'photo(s) sélectionnée(s)'}
+                </p>
+              )}
+            </div>
+          </>
+        )}
 
         {/* Description */}
         <div>
@@ -176,7 +201,7 @@ export function AddListingPage() {
             <option value="">{isAr ? 'اختر فئة' : 'Sélectionner une catégorie'}</option>
             {categories.map((cat) => (
               <option key={cat.id} value={cat.id}>
-                {isAr ? cat.ar : cat.fr}
+                {isAr ? cat.nom_ar : cat.nom_fr}
               </option>
             ))}
           </select>
@@ -261,16 +286,18 @@ export function AddListingPage() {
         {/* Submit */}
         <div className={cn('flex gap-4', isAr && 'flex-row-reverse')}>
           <button type="submit" disabled={loading} className="btn-gold disabled:opacity-50">
-            {loading ? '...' : t('formulaire.publier')}
+            {loading ? '...' : isEditing ? (isAr ? 'حفظ التعديلات' : 'Enregistrer') : t('formulaire.publier')}
           </button>
-          <button
-            type="button"
-            onClick={(e) => handleSubmit(e as any, true)}
-            disabled={loading}
-            className="btn-gold-outline disabled:opacity-50"
-          >
-            {loading ? '...' : t('formulaire.enregistrer_brouillon')}
-          </button>
+          {!isEditing && (
+            <button
+              type="button"
+              onClick={(e) => handleSubmit(e as any, true)}
+              disabled={loading}
+              className="btn-gold-outline disabled:opacity-50"
+            >
+              {loading ? '...' : t('formulaire.enregistrer_brouillon')}
+            </button>
+          )}
         </div>
       </form>
     </div>

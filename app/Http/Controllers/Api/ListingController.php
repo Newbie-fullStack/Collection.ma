@@ -76,6 +76,7 @@ class ListingController extends Controller
             'mode' => 'required|in:enchere,achat_immediat',
             'prix_vente' => 'required|numeric|min:0',
             'frais_port' => 'nullable|numeric|min:0',
+            'statut' => 'sometimes|in:brouillon,active',
             'photos' => 'nullable|array|max:20',
             'photos.*' => 'image|mimes:jpeg,png,jpg,webp|max:5120',
         ]);
@@ -93,7 +94,7 @@ class ListingController extends Controller
                 'frais_port' => $validated['frais_port'] ?? 0,
                 'total' => $total,
                 'mode' => $validated['mode'],
-                'statut' => 'active',
+                'statut' => $validated['statut'] ?? 'active',
                 'prix_actuel' => $validated['mode'] === 'enchere' ? $validated['prix_vente'] : null,
                 'date_publication' => now(),
                 'date_expiration' => now()->addDays(28),

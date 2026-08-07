@@ -1,13 +1,16 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Search } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { categoriesApi } from '@/api';
+import type { Category } from '@/types';
 
 export function AdvancedSearchPage() {
   const { i18n } = useTranslation();
   const isAr = i18n.language === 'ar';
   const navigate = useNavigate();
+  const [categories, setCategories] = useState<Category[]>([]);
   const [form, setForm] = useState({
     q: '',
     category_id: '',
@@ -17,6 +20,16 @@ export function AdvancedSearchPage() {
     sort_by: 'created_at',
     sort_dir: 'desc',
   });
+
+  useEffect(() => {
+    categoriesApi.list()
+      .then(({ data }) => {
+        const active = (Array.isArray(data) ? data : []).filter((c) => c.active !== false);
+        active.sort((a, b) => a.ordre_affichage - b.ordre_affichage);
+        setCategories(active);
+      })
+      .catch(() => setCategories([]));
+  }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
@@ -87,7 +100,7 @@ export function AdvancedSearchPage() {
           <select name="category_id" value={form.category_id} onChange={handleChange} className="input-field">
             <option value="">{isAr ? 'جميع الفئات' : 'Toutes les catégories'}</option>
             {categories.map((cat) => (
-              <option key={cat.id} value={cat.id}>{cat.label}</option>
+              <option key={cat.id} value={cat.id}>{isAr ? cat.nom_ar : cat.nom_fr}</option>
             ))}
           </select>
         </div>
