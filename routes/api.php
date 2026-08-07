@@ -23,6 +23,7 @@ Route::post('/auth/reset-password', [AuthController::class, 'resetPassword']);
 // Public listing browse
 Route::get('/listings', [ListingController::class, 'index']);
 Route::get('/listings/{listing}', [ListingController::class, 'show']);
+Route::get('/categories', [ListingController::class, 'categories']);
 
 // --- Authenticated Routes ---
 Route::middleware('auth:sanctum')->group(function () {

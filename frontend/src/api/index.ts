@@ -75,7 +75,7 @@ export const disputesApi = {
 
 // --- Categories ---
 export const categoriesApi = {
-  list: () => api.get<Category[]>('/listings?per_page=100'),
+  list: () => api.get<Category[]>('/categories'),
 };
 
 // --- Notifications ---
