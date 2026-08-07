@@ -69,12 +69,22 @@ export function Header() {
 
         {/* Row 1: Logo + Search + Actions */}
         <div className={cn(
-          'flex items-center gap-2 sm:gap-4 h-14 px-3 sm:px-5 rounded-2xl',
+          'flex items-center flex-nowrap gap-2 sm:gap-4 h-14 px-3 sm:px-5 rounded-2xl',
           'bg-navy-card/80 border border-gold/15',
           isAr && 'md:flex-row-reverse'
         )}>
-          {/* Logo */}
-          <Link to="/" className="shrink-0">
+          {/* Logo icon (mobile) */}
+          <Link to="/" className="shrink-0 sm:hidden relative z-10">
+            <img src="/logo.png" alt="collection.ma" className="w-9 h-9 object-contain" />
+          </Link>
+
+          {/* Centered brand text (mobile only, hidden when menu open) */}
+          <div className={cn('sm:hidden absolute inset-0 flex items-center justify-center pointer-events-none', mobileMenuOpen && 'invisible')}>
+            <span className="font-serif font-bold text-2xl text-white">collection.ma</span>
+          </div>
+
+          {/* Full logo (desktop only) */}
+          <Link to="/" className="hidden sm:block shrink-0">
             <Logo variant="light" size="md" />
           </Link>
 

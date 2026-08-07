@@ -35,12 +35,8 @@ export function ListingDetailPage() {
   useEffect(() => {
     if (!numero_auto) return;
     setLoading(true);
-    listingsApi.list({ q: numero_auto })
-      .then(({ data }) => {
-        if (data.data.length > 0) {
-          setListing(data.data[0]);
-        }
-      })
+    listingsApi.getByNumero(numero_auto)
+      .then(({ data }) => setListing(data))
       .catch(() => setListing(null))
       .finally(() => setLoading(false));
   }, [numero_auto]);

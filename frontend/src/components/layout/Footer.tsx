@@ -47,17 +47,17 @@ export function Footer() {
     <footer className="bg-navy border-t border-gold/10">
       {/* Reassurance bar */}
       <div className="border-b border-gold/10">
-        <div className="max-w-7xl mx-auto px-4 py-6">
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4 text-center">
+        <div className="max-w-7xl mx-auto px-4 py-4 sm:py-6">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-4 text-center">
             {(isAr
               ? ['اصلالية موثوقة', 'دفع امن', 'بائعون موثوقون', 'licitات وشراء مباشر', 'توصيل دولي', 'خدمة عملاء']
               : ['Authenticite verifiee', 'Paiement securise', 'Vendeurs verifies', 'Encheres & Achat direct', 'Livraison internationale', 'Service client reactif']
             ).map((item, i) => (
               <div key={i} className="flex flex-col items-center gap-1">
-                <div className="w-8 h-8 rounded-full bg-gold/10 flex items-center justify-center">
-                  <span className="text-gold text-lg">&#10022;</span>
+                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-gold/10 flex items-center justify-center">
+                  <span className="text-gold text-sm sm:text-lg">&#10022;</span>
                 </div>
-                <span className="text-xs text-text-subdued">{item}</span>
+                <span className="text-[10px] sm:text-xs text-text-subdued">{item}</span>
               </div>
             ))}
           </div>
@@ -65,8 +65,8 @@ export function Footer() {
       </div>
 
       {/* Main footer */}
-      <div className="max-w-7xl mx-auto px-4 py-10">
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-6 sm:gap-8">
+      <div className="max-w-7xl mx-auto px-4 py-6 sm:py-10">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 sm:gap-8">
           {/* Logo + description */}
           <div className={cn('md:col-span-1', isAr && 'md:order-last')}>
             <Logo variant="light" size="md" />
@@ -94,8 +94,8 @@ export function Footer() {
           {/* Link columns */}
           {columns.map((col, i) => (
             <div key={i}>
-              <h3 className="font-semibold text-gold mb-4 text-sm">{col.title}</h3>
-              <ul className="space-y-2">
+              <h3 className="font-semibold text-gold mb-2 sm:mb-4 text-xs sm:text-sm">{col.title}</h3>
+              <ul className="space-y-1 sm:space-y-2">
                 {col.links.map((link, j) => (
                   <li key={j}>
                     <Link to={link.href} className="text-sm text-text-subdued hover:text-gold transition-colors">
@@ -111,11 +111,11 @@ export function Footer() {
 
       {/* Payment + copyright */}
       <div className="border-t border-gold/10">
-        <div className="max-w-7xl mx-auto px-4 py-4">
-          <div className={cn('flex flex-col md:flex-row items-center justify-between gap-4', isAr && 'md:flex-row-reverse')}>
-            <div className="flex items-center gap-4">
+        <div className="max-w-7xl mx-auto px-4 py-3 sm:py-4">
+          <div className={cn('flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4', isAr && 'sm:flex-row-reverse')}>
+            <div className="flex items-center gap-2 sm:gap-4 flex-wrap justify-center">
               <span className="text-xs text-text-subdued">{isAr ? 'وسائل الدفع:' : 'Paiement securise'}</span>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5 sm:gap-2">
                 {['VISA', 'Mastercard', 'CMI', 'PayPal'].map((method) => (
                   <span key={method} className="px-2 py-1 bg-gold/10 rounded text-xs text-gold">
                     {method}

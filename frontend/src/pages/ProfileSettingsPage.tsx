@@ -93,15 +93,15 @@ export function ProfileSettingsPage() {
   ];
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-12">
-      <h1 className={cn('text-3xl font-serif font-bold text-cream mb-8', isAr && 'text-right')}>
+    <div className="max-w-4xl mx-auto px-4 py-8 sm:py-12">
+      <h1 className={cn('text-2xl sm:text-3xl font-serif font-bold text-cream mb-6 sm:mb-8', isAr && 'text-right')}>
         {isAr ? 'إعدادات الحساب' : 'Parametres du compte'}
       </h1>
 
-      <div className={cn('flex gap-8', isAr && 'flex-row-reverse')}>
+      <div className={cn('flex flex-col sm:flex-row gap-4 sm:gap-8', isAr && 'sm:flex-row-reverse')}>
         {/* Tabs */}
-        <div className="w-56 shrink-0">
-          <nav className="space-y-1">
+        <div className="w-full sm:w-56 shrink-0">
+          <nav className="flex sm:flex-col gap-1 overflow-x-auto">
             {tabs.map((tab) => {
               const Icon = tab.icon;
               return (
@@ -126,7 +126,7 @@ export function ProfileSettingsPage() {
         {/* Content */}
         <div className="flex-1 min-w-0">
           {activeTab === 'profile' && (
-            <form onSubmit={handleProfileSubmit} className="card p-6 space-y-6">
+            <form onSubmit={handleProfileSubmit} className="card p-4 sm:p-6 space-y-4 sm:space-y-6">
               <h2 className="text-lg font-semibold text-cream mb-4">
                 {isAr ? 'المعلومات الشخصية' : 'Informations personnelles'}
               </h2>
@@ -222,7 +222,7 @@ export function ProfileSettingsPage() {
           )}
 
           {activeTab === 'password' && (
-            <form onSubmit={handlePasswordSubmit} className="card p-6 space-y-6">
+            <form onSubmit={handlePasswordSubmit} className="card p-4 sm:p-6 space-y-4 sm:space-y-6">
               <h2 className="text-lg font-semibold text-cream mb-4">
                 {isAr ? 'تغيير كلمة المرور' : 'Changer le mot de passe'}
               </h2>
@@ -285,7 +285,7 @@ export function ProfileSettingsPage() {
           )}
 
           {activeTab === 'preferences' && (
-            <div className="card p-6 space-y-6">
+            <div className="card p-4 sm:p-6 space-y-4 sm:space-y-6">
               <h2 className="text-lg font-semibold text-cream mb-4">
                 {isAr ? 'التفضيلات' : 'Preferences'}
               </h2>

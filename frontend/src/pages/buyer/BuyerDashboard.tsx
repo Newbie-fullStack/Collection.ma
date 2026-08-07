@@ -112,49 +112,49 @@ export function BuyerDashboard() {
 
     return (
       <>
-        <div className={cn('flex items-start justify-between mb-6', isAr && 'flex-row-reverse')}>
+        <div className={cn('flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6', isAr && 'sm:flex-row-reverse')}>
           <div>
-            <h1 className="text-2xl font-serif font-bold text-cream">
+            <h1 className="text-xl sm:text-2xl font-serif font-bold text-cream">
               {isAr ? `! ${user?.pseudo}` : `Bonjour, ${user?.pseudo || 'Collectionneur'} !`}
             </h1>
-            <p className="text-sm text-text-subdued mt-1">
+            <p className="text-xs sm:text-sm text-text-subdued mt-1">
               {isAr ? 'عضو منذ 12 يناير 2023' : `Membre depuis le ${user?.created_at ? new Date(user.created_at).toLocaleDateString('fr-MA') : '12 janvier 2023'}`}
             </p>
           </div>
-          <div className={cn('flex gap-4', isAr && 'flex-row-reverse')}>
+          <div className={cn('grid grid-cols-4 gap-2 sm:gap-4', isAr && 'sm:flex-row-reverse')}>
             <div className="text-center">
-              <div className="w-10 h-10 rounded-full bg-gold/10 flex items-center justify-center mx-auto mb-1">
-                <WalletIcon className="w-5 h-5 text-gold" />
+              <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-gold/10 flex items-center justify-center mx-auto mb-1">
+                <WalletIcon className="w-4 h-4 sm:w-5 sm:h-5 text-gold" />
               </div>
-              <p className="text-xs text-text-subdued">{isAr ? 'المحفظة' : 'Portefeuille'}</p>
-              <p className="text-sm font-bold text-cream">{wallet ? formatMAD(wallet.solde_disponible, i18n.language) : '0 MAD'}</p>
+              <p className="text-[10px] sm:text-xs text-text-subdued">{isAr ? 'المحفظة' : 'Portefeuille'}</p>
+              <p className="text-xs sm:text-sm font-bold text-cream">{wallet ? formatMAD(wallet.solde_disponible, i18n.language) : '0 MAD'}</p>
             </div>
             <div className="text-center">
-              <div className="w-10 h-10 rounded-full bg-gold/10 flex items-center justify-center mx-auto mb-1">
-                <Package className="w-5 h-5 text-gold" />
+              <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-gold/10 flex items-center justify-center mx-auto mb-1">
+                <Package className="w-4 h-4 sm:w-5 sm:h-5 text-gold" />
               </div>
-              <p className="text-xs text-text-subdued">{isAr ? 'الطلبات' : 'Commandes'}</p>
-              <p className="text-sm font-bold text-cream">{orders.length}</p>
+              <p className="text-[10px] sm:text-xs text-text-subdued">{isAr ? 'الطلبات' : 'Commandes'}</p>
+              <p className="text-xs sm:text-sm font-bold text-cream">{orders.length}</p>
             </div>
             <div className="text-center">
-              <div className="w-10 h-10 rounded-full bg-gold/10 flex items-center justify-center mx-auto mb-1">
-                <Heart className="w-5 h-5 text-gold" />
+              <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-gold/10 flex items-center justify-center mx-auto mb-1">
+                <Heart className="w-4 h-4 sm:w-5 sm:h-5 text-gold" />
               </div>
-              <p className="text-xs text-text-subdued">{isAr ? 'المفضلة' : 'Favoris'}</p>
-              <p className="text-sm font-bold text-cream">{favorites.length}</p>
+              <p className="text-[10px] sm:text-xs text-text-subdued">{isAr ? 'المفضلة' : 'Favoris'}</p>
+              <p className="text-xs sm:text-sm font-bold text-cream">{favorites.length}</p>
             </div>
             <div className="text-center">
-              <div className="w-10 h-10 rounded-full bg-gold/10 flex items-center justify-center mx-auto mb-1">
-                <Clock className="w-5 h-5 text-gold" />
+              <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-gold/10 flex items-center justify-center mx-auto mb-1">
+                <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-gold" />
               </div>
-              <p className="text-xs text-text-subdued">{isAr ? 'licitات' : 'Encheres'}</p>
-              <p className="text-sm font-bold text-cream">{bids.length}</p>
+              <p className="text-[10px] sm:text-xs text-text-subdued">{isAr ? 'licitات' : 'Encheres'}</p>
+              <p className="text-xs sm:text-sm font-bold text-cream">{bids.length}</p>
             </div>
           </div>
         </div>
 
         <div className="card p-4 mb-6">
-          <div className="grid grid-cols-3 md:grid-cols-6 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3 sm:gap-4">
             {[
               { icon: CreditCard, count: statusCounts.attente_paiement, label: isAr ? 'في انتظار الدفع' : 'En attente de paiement', color: 'text-blue' },
               { icon: Package, count: statusCounts.sequestre, label: isAr ? 'في انتظار الشحن' : "En attente d'expedition", color: 'text-yellow' },
@@ -308,7 +308,7 @@ export function BuyerDashboard() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-6">
+    <div className="max-w-7xl mx-auto px-3 sm:px-4 py-4 sm:py-6">
       <div className={cn('flex gap-6', isAr && 'flex-row-reverse')}>
         <aside className="hidden md:block w-56 shrink-0">
           <div className="bg-navy-card border border-gold/15 rounded-lg p-4 sticky top-24">

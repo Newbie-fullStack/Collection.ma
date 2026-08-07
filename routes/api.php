@@ -14,6 +14,15 @@ use App\Http\Controllers\Api\ReviewController;
 use App\Http\Controllers\Api\WalletController;
 use Illuminate\Support\Facades\Route;
 
+// Resolve {listing} route params by numero_auto (e.g. COL-2026-000001)
+Route::bind('listing', function (string $value): \App\Models\Listing {
+    $listing = \App\Models\Listing::where('numero_auto', $value)->first();
+    if (! $listing) {
+        throw new \Illuminate\Database\Eloquent\ModelNotFoundException;
+    }
+    return $listing;
+});
+
 // --- Public Routes ---
 Route::post('/auth/register', [AuthController::class, 'register']);
 Route::post('/auth/login', [AuthController::class, 'login']);

@@ -18,6 +18,7 @@ export const authApi = {
 export const listingsApi = {
   list: (params?: Record<string, string | number>) => api.get<PaginatedResponse<Listing>>('/listings', { params }),
   get: (id: number) => api.get<Listing>(`/listings/${id}`),
+  getByNumero: (numeroAuto: string) => api.get<Listing>(`/listings/${numeroAuto}`),
   create: (data: FormData) => api.post<Listing>('/listings', data, { headers: { 'Content-Type': 'multipart/form-data' } }),
   update: (id: number, data: Record<string, unknown>) => api.put<Listing>(`/listings/${id}`, data),
   delete: (id: number) => api.delete(`/listings/${id}`),
