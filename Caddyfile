@@ -1,6 +1,6 @@
 # FrankenPHP / Caddy configuration for Collection.ma
-# Serves the built React SPA (static) + the Laravel API on the same origin.
-# Binds on all interfaces so Fly's proxy can reach port 8080.
+# Serves the built React SPA + the Laravel API on the same origin.
+# Binds on port 8080 so Fly's proxy can reach it.
 
 {
 	admin off
@@ -8,34 +8,54 @@
 		output stdout
 		level INFO
 	}
+	frankenphp
 }
 
 :8080 {
 	encode zstd gzip
 
-	# ---- Laravel API routes ----
-	@backend {
-		path /api/* /sanctum/* /up
+	# ---- Laravel API + media live in the app's public dir ----
+	# PHP front-controller for all /api, /sanctum, /up routes
+	route /api/* {
+		php_server {
+			root /var/www/public
+			try_files {path} /index.php
+		}
 	}
-	handle @backend {
-		root * /var/www/public
-		php_server
+	route /up {
+		php_server {
+			root /var/www/public
+			try_files {path} /index.php
+		}
+	}
+	route /sanctum/* {
+		php_server {
+			root /var/www/public
+			try_files {path} /index.php
+		}
 	}
 
 	# ---- Uploaded media under /storage ----
-	# /storage is a symlink to storage/app/public (mounted volume)
-	@media {
-		path /storage/*
-	}
-	handle @media {
-		root * /var/www/public/storage
+	# /var/www/public/storage is a symlink to the mounted storage volume
+	root * /var/www/public
+	route /storage/* {
 		file_server
 	}
 
-	# ---- SPA static assets + client-side routing fallback ----
-	handle {
+	# ---- React SPA static assets + client-side routing fallback ----
+	# Copied into public so Laravel/Caddy share the same origin
+	@spa path /assets/*
+	handle @spa {
 		root * /web
-		try_files {path} {path}/ /index.html
+		file_server
+	}
+	@index path /index.html /
+	handle @index {
+		root * /web/index.html
+		file_server
+	}
+	handle_path / {
+		root * /web/index.html
 		file_server
 	}
 
