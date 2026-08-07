@@ -22,10 +22,10 @@ class AuthController extends Controller
             'pseudo' => 'nullable|string|max:50|unique:users,pseudo',
             'nom' => 'nullable|string|max:100',
             'prenom' => 'nullable|string|max:100',
-            'age' => 'nullable|integer|min:18|max:120',
-            'gsm' => 'nullable|string|max:20',
+            'age' => 'required|integer|min:18|max:120',
+            'gsm' => 'required|string|max:20',
             'email' => 'required|email|unique:users,email',
-            'adresse_exacte' => 'nullable|string',
+            'adresse_exacte' => 'required|string',
             'rib' => 'nullable|string|min:24|max:34',
             'password' => ['required', 'confirmed', PasswordRule::min(8)->mixedCase()->numbers()],
             'langue_preferee' => 'in:fr,ar',
@@ -41,6 +41,9 @@ class AuthController extends Controller
             'password.numbers' => 'Le mot de passe doit contenir au moins un chiffre',
             'cgu_acceptee.accepted' => 'Vous devez accepter les conditions générales',
             'age.min' => 'Vous devez avoir au moins 18 ans',
+            'age.required' => 'L\'âge est obligatoire',
+            'gsm.required' => 'Le téléphone est obligatoire',
+            'adresse_exacte.required' => 'L\'adresse est obligatoire',
             'rib.min' => 'Le RIB doit contenir au moins :min caractères',
         ]);
 
