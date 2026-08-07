@@ -67,6 +67,16 @@ export interface Bid {
   is_auto_bid: boolean;
   statut: 'active' | 'gagnee' | 'perdue' | 'annulee';
   bidder?: Pick<User, 'id' | 'pseudo'>;
+  listing?: {
+    id: number;
+    numero_auto: string;
+    titre: string;
+    mode: string;
+    statut: string;
+    prix_vente: number;
+    prix_actuel: number | null;
+    date_expiration: string | null;
+  };
   created_at: string;
 }
 

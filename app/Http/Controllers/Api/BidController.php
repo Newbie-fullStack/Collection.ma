@@ -122,4 +122,17 @@ class BidController extends Controller
 
         return response()->json($bids);
     }
+
+    public function myListingBids(Request $request): JsonResponse
+    {
+        $bids = Bid::whereHas('listing', fn ($q) => $q->where('seller_id', $request->user()->id))
+            ->with([
+                'listing:numero_auto,titre,mode,statut,date_expiration,prix_actuel,prix_vente',
+                'bidder:pseudo',
+            ])
+            ->orderByDesc('created_at')
+            ->paginate(20);
+
+        return response()->json($bids);
+    }
 }

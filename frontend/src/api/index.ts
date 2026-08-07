@@ -30,6 +30,7 @@ export const bidsApi = {
   list: (listingId: number, params?: Record<string, string | number>) => api.get<PaginatedResponse<Bid>>(`/listings/${listingId}/bids`, { params }),
   place: (listingId: number, data: { montant: number; auto_bid_max?: number }) => api.post<Bid>(`/listings/${listingId}/bids`, data),
   myBids: (params?: Record<string, string | number>) => api.get<PaginatedResponse<Bid>>('/my-bids', { params }),
+  myListingBids: (params?: Record<string, string | number>) => api.get<PaginatedResponse<Bid>>('/my-listing-bids', { params }),
 };
 
 // --- Orders ---

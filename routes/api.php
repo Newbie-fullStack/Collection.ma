@@ -1,9 +1,9 @@
 <?php
 
-use App\Http\Controllers\Api\ConversationController;
 use App\Http\Controllers\Api\AdminController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\BidController;
+use App\Http\Controllers\Api\ConversationController;
 use App\Http\Controllers\Api\DisputeController;
 use App\Http\Controllers\Api\FavoriteController;
 use App\Http\Controllers\Api\ListingController;
@@ -46,6 +46,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/listings/{listing}/bids', [BidController::class, 'index']);
     Route::post('/listings/{listing}/bids', [BidController::class, 'store']);
     Route::get('/my-bids', [BidController::class, 'myBids']);
+    Route::get('/my-listing-bids', [BidController::class, 'myListingBids']);
 
     // Orders
     Route::get('/orders', [OrderController::class, 'index']);

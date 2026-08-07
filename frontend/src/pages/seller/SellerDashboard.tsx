@@ -2,17 +2,31 @@ import { useState, useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext';
-import { ordersApi, walletApi, listingsApi } from '@/api';
+import { ordersApi, walletApi, listingsApi, disputesApi } from '@/api';
 import { formatMAD, getStatusColor, cn } from '@/lib/utils';
 import type { Order, Wallet, Listing } from '@/types';
 import {
   LayoutDashboard, Package, ShoppingBag, FileText, Wallet as WalletIcon,
-  Star, MessageSquare, Settings, PlusCircle, Eye, Clock
+  Star, MessageSquare, Settings, PlusCircle, Eye, Clock, X
 } from 'lucide-react';
 import { SellerListingsPage } from './SellerListingsPage';
 import { SellerInvoicesPage, SellerWithdrawalsPage, SellerSalesPage, SellerOffersPage } from './SellerSubPages';
 import { SellerDraftsPage, SellerStatsPage } from './SellerSubPages2';
 import { AddListingPage } from './AddListingPage';
+
+const DISPUTE_REASON_LABELS: Record<string, Record<'fr' | 'ar', string>> = {
+  objet_non_recu: { fr: 'Objet non reçu', ar: 'لم أستلم العنصر' },
+  objet_endommage: { fr: 'Objet endommagé', ar: 'عنصر تالف' },
+  objet_different: { fr: 'Objet différent', ar: 'عنصر مختلف' },
+  non_conforme: { fr: 'Non conforme', ar: 'غير مطابق' },
+  retard_livraison: { fr: 'Retard de livraison', ar: 'تأخر التسليم' },
+  arnaque: { fr: 'Arnaque', ar: 'احتيال' },
+  autre: { fr: 'Autre', ar: 'أخرى' },
+};
+
+function raisonLabel(raison: string, isAr: boolean): string {
+  return DISPUTE_REASON_LABELS[raison]?.[isAr ? 'ar' : 'fr'] ?? raison;
+}
 
 export function SellerDashboard() {
   const { t, i18n } = useTranslation();
@@ -25,6 +39,22 @@ export function SellerDashboard() {
   const [loading, setLoading] = useState(true);
   const [shippingId, setShippingId] = useState<number | null>(null);
   const [tracking, setTracking] = useState('');
+  const [disputing, setDisputing] = useState<Order | null>(null);
+  const [disputeForm, setDisputeForm] = useState({ raison: 'objet_non_recu', description: '' });
+  const [disputeSaving, setDisputeSaving] = useState(false);
+
+  const submitDispute = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!disputing || !disputeForm.description.trim()) return;
+    setDisputeSaving(true);
+    try {
+      await disputesApi.create({ order_id: disputing.id, raison: disputeForm.raison, description: disputeForm.description.trim() });
+      setDisputing(null);
+      setDisputeForm({ raison: 'objet_non_recu', description: '' });
+    } finally {
+      setDisputeSaving(false);
+    }
+  };
 
   const handleShip = async (orderId: number) => {
     if (!tracking.trim()) {
@@ -252,6 +282,14 @@ export function SellerDashboard() {
                                   </button>
                                 )
                               )}
+                              {(order.statut === 'sequestre' || order.statut === 'expedie') && (
+                                <button
+                                  onClick={() => { setDisputing(order); setDisputeForm({ raison: 'objet_non_recu', description: '' }); }}
+                                  className="btn-gold-outline !px-3 !py-1 text-xs ml-2"
+                                >
+                                  {isAr ? 'نزاع' : 'Litige'}
+                                </button>
+                              )}
                             </td>
                           </tr>
                         ))
@@ -264,6 +302,38 @@ export function SellerDashboard() {
           )}
         </main>
       </div>
+
+      {disputing && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+          <form onSubmit={submitDispute} className="card p-6 w-full max-w-md space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-semibold text-cream">{isAr ? 'فتح نزاع' : 'Ouvrir un litige'}</h3>
+              <button type="button" onClick={() => setDisputing(null)} className="text-text-subdued hover:text-cream">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <p className="text-sm text-text-subdued">
+              {isAr ? 'طلب' : 'Commande'} {disputing.numero_commande}
+            </p>
+            <div>
+              <label className="block text-sm font-medium text-cream mb-1">{isAr ? 'السبب' : 'Raison'}</label>
+              <select value={disputeForm.raison} onChange={(e) => setDisputeForm({ ...disputeForm, raison: e.target.value })} className="input-field">
+                {(['objet_non_recu', 'objet_endommage', 'objet_different', 'non_conforme', 'retard_livraison', 'arnaque', 'autre'] as const).map(r => (
+                  <option key={r} value={r}>{raisonLabel(r, isAr)}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-cream mb-1">{isAr ? 'الوصف' : 'Description'}</label>
+              <textarea value={disputeForm.description} onChange={(e) => setDisputeForm({ ...disputeForm, description: e.target.value })} rows={3} className="input-field" placeholder={isAr ? 'صف المشكلة' : 'Décrivez le problème'} required />
+            </div>
+            <div className={cn('flex gap-3 justify-end', isAr && 'flex-row-reverse')}>
+              <button type="button" onClick={() => setDisputing(null)} className="btn-gold-outline px-4 py-2 text-sm">{isAr ? 'إلغاء' : 'Annuler'}</button>
+              <button type="submit" disabled={disputeSaving} className="btn-gold px-4 py-2 text-sm">{disputeSaving ? '...' : (isAr ? 'إرسال' : 'Envoyer')}</button>
+            </div>
+          </form>
+        </div>
+      )}
     </div>
   );
 }
