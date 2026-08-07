@@ -49,8 +49,8 @@ COPY --from=composer-builder /usr/bin/composer /usr/bin/composer
 
 WORKDIR /var/www
 
-# Copy built frontend into /web (served as SPA root)
-COPY --from=frontend-builder /build/frontend/dist /web
+# Copy built frontend into the Laravel public dir so SPA + API share one root
+COPY --from=frontend-builder /build/frontend/dist /var/www/public
 
 # Copy backend application
 COPY --from=composer-builder /app/vendor /var/www/vendor

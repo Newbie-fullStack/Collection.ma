@@ -8,6 +8,9 @@ app = "collection-ma"
 
 primary_region = "fra"  # Paris or "ams" Amsterdam — nearest to Morocco
 
+[vm]
+  size = "shared-cpu-2x"   # 512MB RAM — FrankenPHP+Laravel needs >256MB
+
 [env]
   APP_ENV = "production"
   APP_DEBUG = "false"
