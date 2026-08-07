@@ -29,17 +29,15 @@ primary_region = "fra"  # Paris or "ams" Amsterdam — nearest to Morocco
 [http_service]
   internal_port = 8080
   force_https = true
-  auto_stop_machines = "stop"
+  auto_stop_machines = "suspend"
   auto_start_machines = true
-  min_machines_running = 0
+  min_machines_running = 1
 
+  # Default TCP readiness check on the internal port (no TLS / path issues in-cluster)
   [[http_service.checks]]
-    grace_period = "30s"
+    grace_period = "60s"
     interval = "10s"
-    timeout = "3s"
-    method = "GET"
-    path = "/up"
-    tls_skip_verify = true
+    timeout = "5s"
 
 [[mounts]]
   source = "collection_ma_storage"
