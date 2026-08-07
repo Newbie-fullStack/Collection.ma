@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Casts\AsBytea;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -47,6 +48,10 @@ class VendorApplication extends Model
         'date_soumission' => 'datetime',
         'date_traitement' => 'datetime',
         'rib' => 'encrypted',
+        'cin_recto' => AsBytea::class,
+        'cin_verso' => AsBytea::class,
+        'contrat_pdf_genere' => AsBytea::class,
+        'contrat_signe' => AsBytea::class,
     ];
 
     public function user(): BelongsTo

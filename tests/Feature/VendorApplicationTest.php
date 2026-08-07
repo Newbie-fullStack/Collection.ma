@@ -87,6 +87,28 @@ class VendorApplicationTest extends TestCase
             'user_id' => $user->id,
             'statut' => 'en_attente',
         ]);
+
+        $app = VendorApplication::where('user_id', $user->id)->firstOrFail();
+        $this->assertSame('image/jpeg', $app->cin_recto_mime);
+        $this->assertSame('application/pdf', $app->contrat_signe_mime);
+    }
+
+    public function test_bytea_round_trip_preserves_binary(): void
+    {
+        $app = VendorApplication::create([
+            'user_id' => $this->buyer()->id,
+            'date_naissance' => '1995-01-10',
+            'adresse_confirmee' => 'Casablanca',
+            'rib' => 'MA640070700000000000000503',
+            'cin_recto' => hex2bin('ffd8ffe000104a46494600'),
+            'cin_recto_mime' => 'image/jpeg',
+            'statut' => 'en_attente',
+            'date_soumission' => now(),
+        ]);
+
+        $fresh = VendorApplication::findOrFail($app->id);
+        $this->assertSame('ffd8ffe000104a46494600', bin2hex((string) $fresh->cin_recto));
+        $this->assertNotEquals($fresh->cin_recto, $fresh->rib);
     }
 
     public function test_rejects_oversized_document(): void
