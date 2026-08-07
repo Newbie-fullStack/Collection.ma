@@ -5,10 +5,11 @@ set -e
 
 cd /var/www
 
-# If an artisan command was passed (e.g. release_command = "php artisan migrate --force"),
-# run it directly and exit (no persistent server). This is how Fly runs migrations.
+# If a command was passed (release_command = "entrypoint.sh php artisan migrate --force"),
+# run it directly and exit (no persistent server). Args already include the "php artisan" prefix,
+# so we exec them verbatim. Fly uses this to run migrations.
 if [ -n "$1" ]; then
-    exec php artisan "$@"
+    exec "$@"
 fi
 
 # --- Normal web process ---
