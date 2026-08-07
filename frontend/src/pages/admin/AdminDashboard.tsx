@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext';
+import { useParams } from 'react-router-dom';
 import { formatMAD, cn } from '@/lib/utils';
 import {
   LayoutDashboard, Users, Package, MessageSquare, DollarSign,
@@ -28,6 +29,7 @@ export function AdminDashboard() {
   const { t, i18n } = useTranslation();
   const isAr = i18n.language === 'ar';
   const { user } = useAuth();
+  const { section } = useParams();
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [activeSection, setActiveSection] = useState('dashboard');
 
@@ -36,6 +38,20 @@ export function AdminDashboard() {
       .then(({ data }) => setStats(data.stats))
       .catch(console.error);
   }, []);
+
+  // Keep the active section in sync with the URL (:section param) for deep links.
+  useEffect(() => {
+    if (section) setActiveSection(section);
+  }, [section]);
+
+  const goToSection = (key: string) => {
+    setActiveSection(key);
+    if (key === 'dashboard') {
+      window.history.pushState({}, '', '/admin');
+    } else {
+      window.history.pushState({}, '', `/admin/${key}`);
+    }
+  };
 
   const menuItems = [
     { key: 'dashboard', icon: LayoutDashboard },
@@ -155,7 +171,7 @@ export function AdminDashboard() {
             return (
               <button
                 key={item.key}
-                onClick={() => setActiveSection(item.key)}
+                onClick={() => goToSection(item.key)}
                 className={cn(
                   'inline-flex items-center gap-2 px-3 py-2 rounded-full text-sm whitespace-nowrap transition-colors',
                   activeSection === item.key
@@ -185,7 +201,7 @@ export function AdminDashboard() {
                 return (
                   <button
                     key={item.key}
-                    onClick={() => setActiveSection(item.key)}
+                    onClick={() => goToSection(item.key)}
                     className={cn(
                       'w-full flex items-center gap-3 px-3 py-2 rounded text-sm transition-colors text-left',
                       activeSection === item.key

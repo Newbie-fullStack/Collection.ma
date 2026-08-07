@@ -173,6 +173,16 @@ export function BuyerOrdersPage() {
 
   const stepIndex = (statut: string) => steps.findIndex(s => s.key === statut);
 
+  const handleConfirm = async (orderId: number) => {
+    if (!window.confirm(isAr ? 'تأكيد استلام الطلب؟' : 'Confirmer la réception de la commande ?')) return;
+    try {
+      await ordersApi.confirmReception(orderId);
+      setOrders(prev => prev.map(o => o.id === orderId ? { ...o, statut: 'vire_vendeur' } : o));
+    } catch (err: any) {
+      alert(err.response?.data?.message || (isAr ? 'خطأ' : 'Erreur'));
+    }
+  };
+
   return (
     <div>
       <PageHeader title={isAr ? 'طلباتي' : 'Mes commandes'} isAr={isAr} />
@@ -236,6 +246,16 @@ export function BuyerOrdersPage() {
                   <p className={cn('text-xs text-text-subdued mt-2', isAr && 'text-right')}>
                     {isAr ? 'رقم التتبع' : 'Tracking'}: <span className="font-mono">{order.tracking_number}</span>
                   </p>
+                )}
+                {order.statut === 'expedie' && (
+                  <div className={cn('mt-3', isAr && 'text-right')}>
+                    <button
+                      onClick={() => handleConfirm(order.id)}
+                      className="btn-gold px-4 py-2 text-sm"
+                    >
+                      {isAr ? 'تأكيد الاستلام' : 'J\'ai reçu la commande'}
+                    </button>
+                  </div>
                 )}
               </div>
             );

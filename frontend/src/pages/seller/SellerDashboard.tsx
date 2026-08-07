@@ -23,6 +23,23 @@ export function SellerDashboard() {
   const [wallet, setWallet] = useState<Wallet | null>(null);
   const [listings, setListings] = useState<Listing[]>([]);
   const [loading, setLoading] = useState(true);
+  const [shippingId, setShippingId] = useState<number | null>(null);
+  const [tracking, setTracking] = useState('');
+
+  const handleShip = async (orderId: number) => {
+    if (!tracking.trim()) {
+      alert(isAr ? 'أدخل رقم التتبع' : 'Saisissez le numéro de suivi');
+      return;
+    }
+    try {
+      await ordersApi.ship(orderId, { tracking_number: tracking.trim() });
+      setOrders(prev => prev.map(o => o.id === orderId ? { ...o, statut: 'expedie', tracking_number: tracking.trim() } : o));
+      setShippingId(null);
+      setTracking('');
+    } catch (err: any) {
+      alert(err.response?.data?.message || (isAr ? 'خطأ' : 'Erreur'));
+    }
+  };
 
   useEffect(() => {
     Promise.all([
@@ -170,6 +187,7 @@ export function SellerDashboard() {
                         <th className="px-4 py-3 text-left font-medium">{isAr ? 'المبلغ' : 'Prix'}</th>
                         <th className="px-4 py-3 text-left font-medium">{isAr ? 'التاريخ' : 'Date'}</th>
                         <th className="px-4 py-3 text-left font-medium">{isAr ? 'الحالة' : 'Statut'}</th>
+                        <th className="px-4 py-3 text-left font-medium">{isAr ? 'إجراء' : 'Action'}</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -210,6 +228,30 @@ export function SellerDashboard() {
                               <span className={cn('badge', getStatusColor(order.statut))}>
                                 {statusLabels[order.statut] || order.statut}
                               </span>
+                            </td>
+                            <td className="px-4 py-3">
+                              {order.statut === 'sequestre' && (
+                                shippingId === order.id ? (
+                                  <div className="flex items-center gap-2">
+                                    <input
+                                      value={tracking}
+                                      onChange={(e) => setTracking(e.target.value)}
+                                      placeholder={isAr ? 'رقم التتبع' : 'N° suivi'}
+                                      className="input-field !py-1 !px-2 text-xs !w-36"
+                                    />
+                                    <button onClick={() => handleShip(order.id)} className="btn-gold !px-3 !py-1 text-xs">
+                                      {isAr ? 'شحن' : 'Expédier'}
+                                    </button>
+                                  </div>
+                                ) : (
+                                  <button
+                                    onClick={() => { setShippingId(order.id); setTracking(''); }}
+                                    className="btn-gold-outline !px-3 !py-1 text-xs"
+                                  >
+                                    {isAr ? 'شحن' : 'Expédier'}
+                                  </button>
+                                )
+                              )}
                             </td>
                           </tr>
                         ))
