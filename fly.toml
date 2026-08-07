@@ -33,11 +33,16 @@ primary_region = "fra"  # Paris or "ams" Amsterdam — nearest to Morocco
   auto_start_machines = true
   min_machines_running = 1
 
-  # Default TCP readiness check on the internal port (no TLS / path issues in-cluster)
+  # HTTP readiness check on the internal port against Laravel's health route.
+  # /up returns 200 (Laravel 11 health) — matches the app and avoids 308/SPA redirects.
   [[http_service.checks]]
     grace_period = "60s"
     interval = "10s"
     timeout = "5s"
+    method = "GET"
+    path = "/up"
+    protocol = "http"
+    tls_skip_verify = false
 
 [[mounts]]
   source = "collection_ma_storage"
