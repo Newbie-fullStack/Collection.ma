@@ -15,18 +15,21 @@
 :8080 {
 	encode zstd gzip
 
-	# Single site root: the Laravel public directory also holds the SPA build.
-	root * /var/www/public
-
-	# Laravel backend (API, health, auth). Handled first.
+	# Laravel backend (API, health, auth). Matched first; handle is exclusive.
 	@backend path /api/* /up /sanctum/*
-	php_server @backend {
-		try_files {path} /index.php
+	handle @backend {
+		root * /var/www/public
+		php_server {
+			try_files {path} /index.php
+		}
 	}
 
-	# Uploaded media + SPA assets: serve real files, else SPA fallback.
-	try_files {path} {path}/ /index.html
-	file_server
+	# Uploaded media (storage symlink) + SPA assets + SPA fallback.
+	handle {
+		root * /var/www/public
+		try_files {path} {path}/ /index.html
+		file_server
+	}
 
 	header {
 		Strict-Transport-Security max-age=31536000; includeSubDomains
