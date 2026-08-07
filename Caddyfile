@@ -19,7 +19,7 @@
 	}
 	handle @backend {
 		php_server {
-			root /var/www/html
+			root /var/www/public
 		}
 	}
 
@@ -29,7 +29,7 @@
 		path /storage/*
 	}
 	handle @media {
-		root * /var/www/html/storage
+		root * /var/www/public/storage
 		file_server
 	}
 
