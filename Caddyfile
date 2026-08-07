@@ -19,11 +19,7 @@
 	}
 	handle @backend {
 		root * /var/www/public
-		php_server {
-			root /var/www/public
-			index index.php
-			try_files {path} {path}/ /index.php?{query}
-		}
+		php_server
 	}
 
 	# ---- Uploaded media under /storage ----
