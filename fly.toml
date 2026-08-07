@@ -1,57 +1,51 @@
-# fly.toml app configuration file for Collection.ma
-# Generated with flyctl. App name will be assigned after `fly apps create`.
-app = "collection-ma"
+# fly.toml app configuration file generated for collection-ma on 2026-08-07T22:26:44Z
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
+
+app = 'collection-ma'
+primary_region = 'iad'
 
 [build]
-  # Remote builder on Fly.io (no local Docker needed)
-  dockerfile = "Dockerfile"
+  dockerfile = 'Dockerfile'
 
-primary_region = "fra"  # Paris or "ams" Amsterdam — nearest to Morocco
-
-[vm]
-  size = "shared-cpu-2x"   # 512MB RAM — FrankenPHP+Laravel needs >256MB
+[deploy]
+  release_command = 'php artisan migrate --force'
 
 [env]
-  APP_ENV = "production"
-  APP_DEBUG = "false"
-  APP_URL = "https://collection-ma.fly.dev"
-  APP_LOCALE = "fr"
-  APP_FALLBACK_LOCALE = "fr"
+  APP_DEBUG = 'false'
+  APP_ENV = 'production'
+  APP_FALLBACK_LOCALE = 'fr'
+  APP_LOCALE = 'fr'
+  APP_URL = 'https://collection-ma.fly.dev'
+  BROADCAST_CONNECTION = 'log'
+  CACHE_STORE = 'database'
+  DB_CONNECTION = 'pgsql'
+  FILESYSTEM_DISK = 'local'
+  PLATFORM_ADMIN_USER_ID = '1'
+  QUEUE_CONNECTION = 'database'
+  SESSION_DRIVER = 'database'
 
-  DB_CONNECTION = "pgsql"
-  # The rest of DB_* are injected automatically by `fly postgres attach`.
-
-  BROADCAST_CONNECTION = "log"      # Websockets disabled for MVP
-  QUEUE_CONNECTION = "database"
-  CACHE_STORE = "database"
-  SESSION_DRIVER = "database"
-
-  FILESYSTEM_DISK = "local"
-  PLATFORM_ADMIN_USER_ID = "1"
+[[mounts]]
+  source = 'collection_ma_storage'
+  destination = '/var/www/storage'
+  initial_size = '2gb'
 
 [http_service]
   internal_port = 8080
   force_https = true
-  auto_stop_machines = "suspend"
+  auto_stop_machines = 'suspend'
   auto_start_machines = true
   min_machines_running = 1
 
-  # HTTP readiness check on the internal port against Laravel's health route.
-  # /up returns 200 (Laravel 11 health) — matches the app and avoids 308/SPA redirects.
   [[http_service.checks]]
-    grace_period = "60s"
-    interval = "10s"
-    timeout = "5s"
-    method = "GET"
-    path = "/up"
-    protocol = "http"
+    interval = '10s'
+    timeout = '5s'
+    grace_period = '1m0s'
+    method = 'GET'
+    path = '/up'
+    protocol = 'http'
     tls_skip_verify = false
 
-[[mounts]]
-  source = "collection_ma_storage"
-  destination = "/var/www/storage"
-  initial_size = "2gb"
-
-[deploy]
-  # Run migrations on every deploy (idempotent)
-  release_command = "php artisan migrate --force"
+[[vm]]
+  size = 'shared-cpu-2x'
