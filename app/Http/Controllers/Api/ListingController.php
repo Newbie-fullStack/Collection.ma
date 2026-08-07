@@ -13,7 +13,7 @@ class ListingController extends Controller
 {
     public function index(Request $request): JsonResponse
     {
-        $query = Listing::with(['seller:pseudo,nom,prenom', 'category:nom_fr,nom_ar,slug', 'photos'])
+        $query = Listing::with(['seller:id,pseudo,nom,prenom', 'category:id,nom_fr,nom_ar,slug', 'photos'])
             ->where('statut', 'active');
 
         if ($request->category) {
@@ -50,8 +50,8 @@ class ListingController extends Controller
 
     public function show(Listing $listing): JsonResponse
     {
-        $listing->load(['seller:pseudo,nom,prenom', 'category:nom_fr,nom_ar,slug,icon', 'photos', 'bids' => function ($q) {
-            $q->with('bidder:pseudo')->orderByDesc('montant')->limit(10);
+        $listing->load(['seller:id,pseudo,nom,prenom', 'category:id,nom_fr,nom_ar,slug,icon', 'photos', 'bids' => function ($q) {
+            $q->with('bidder:id,pseudo')->orderByDesc('montant')->limit(10);
         }]);
 
         // Increment views
@@ -149,7 +149,7 @@ class ListingController extends Controller
     public function myListings(Request $request): JsonResponse
     {
         $listings = Listing::where('seller_id', $request->user()->id)
-            ->with(['category:nom_fr,nom_ar,slug', 'photos'])
+            ->with(['category:id,nom_fr,nom_ar,slug', 'photos'])
             ->orderByDesc('created_at')
             ->paginate(20);
 
