@@ -19,19 +19,13 @@
 	root * /var/www/public
 
 	# ---- Laravel backend (API + health) ----
-	route /api/* {
-		php_server {
-			try_files {path} /index.php
-		}
-	}
-	route /up {
-		php_server {
-			try_files {path} /index.php
-		}
-	}
-	route /sanctum/* {
-		php_server {
-			try_files {path} /index.php
+	# Named matchers for the PHP front-controller routes.
+	@backend path /api/* /up /sanctum/*
+	route {
+		handle @backend {
+			php_server {
+				try_files {path} /index.php
+			}
 		}
 	}
 
