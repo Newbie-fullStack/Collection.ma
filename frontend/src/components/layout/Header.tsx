@@ -220,14 +220,12 @@ export function Header() {
                     <Link to="/acheteur" className="flex items-center gap-2 px-4 py-2.5 text-sm text-text-subdued hover:text-gold hover:bg-navy-hover transition-colors">
                       {isAr ? 'حسابي' : 'Mon compte'}
                     </Link>
-                    {(user?.role === 'vendeur' || user?.role === 'both') && (
-                      <Link to="/vendeur" className="flex items-center gap-2 px-4 py-2.5 text-sm text-text-subdued hover:text-gold hover:bg-navy-hover transition-colors">
-                        {t('nav.espace_vendeur')}
-                      </Link>
-                    )}
+                    <Link to="/vendeur" className="flex items-center gap-2 px-4 py-2.5 text-sm text-text-subdued hover:text-gold hover:bg-navy-hover transition-colors">
+                      {isAr ? 'مساحة البائع' : t('nav.espace_vendeur')}
+                    </Link>
                     {user?.role === 'admin' && (
                       <Link to="/admin" className="flex items-center gap-2 px-4 py-2.5 text-sm text-text-subdued hover:text-gold hover:bg-navy-hover transition-colors">
-                        Administration
+                        {isAr ? 'لوحة التحكم (الإدارة)' : 'Espace admin'}
                       </Link>
                     )}
                     <hr className="my-1 border-gold/10" />
@@ -366,6 +364,16 @@ export function Header() {
                 <User className="w-4 h-4" />
                 {isAr ? 'حسابي' : 'Mon compte'}
               </Link>
+              <Link to="/vendeur" className="flex items-center gap-3 px-4 py-2.5 text-sm text-text-subdued hover:text-gold hover:bg-navy-hover rounded-xl transition-colors" onClick={() => setMobileMenuOpen(false)}>
+                <Tag className="w-4 h-4" />
+                {isAr ? 'مساحة البائع' : t('nav.espace_vendeur')}
+              </Link>
+              {user?.role === 'admin' && (
+                <Link to="/admin" className="flex items-center gap-3 px-4 py-2.5 text-sm text-text-subdued hover:text-gold hover:bg-navy-hover rounded-xl transition-colors" onClick={() => setMobileMenuOpen(false)}>
+                  <Crown className="w-4 h-4" />
+                  {isAr ? 'لوحة التحكم (الإدارة)' : 'Espace admin'}
+                </Link>
+              )}
               <Link to="/messages" className="flex items-center gap-3 px-4 py-2.5 text-sm text-text-subdued hover:text-gold hover:bg-navy-hover rounded-xl transition-colors" onClick={() => setMobileMenuOpen(false)}>
                 <MessageSquare className="w-4 h-4" />
                 {isAr ? 'الرسائل' : 'Messages'}
