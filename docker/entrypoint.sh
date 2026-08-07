@@ -23,6 +23,14 @@ fi
 mkdir -p storage/app/public
 ln -sfn /var/www/storage/app/public /var/www/public/storage
 
+# The storage volume is mounted fresh/empty, so recreate Laravel's required
+# runtime subdirectories on every boot.
+mkdir -p storage/framework/cache/data \
+    storage/framework/sessions \
+    storage/framework/views \
+    storage/logs \
+    bootstrap/cache
+
 # Warm caches (idempotent; Postgres must be reachable before cache of config
 # that needs DB, so config:cache may fail silently here — run again post-release).
 php artisan config:cache 2>/dev/null || true
