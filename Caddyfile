@@ -6,7 +6,7 @@
 	admin off
 	log {
 		output stdout
-		level INFO
+		level DEBUG
 	}
 	frankenphp
 }
