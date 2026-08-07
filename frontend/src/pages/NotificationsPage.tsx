@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
-import { cn, formatMAD } from '@/lib/utils';
+import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
 import { notificationsApi } from '@/api';
 import { Bell, Check, CheckCheck, Trash2, Package, Star, MessageSquare, AlertTriangle, Clock } from 'lucide-react';
@@ -60,11 +60,11 @@ export function NotificationsPage() {
       <div className={cn('flex items-center justify-between mb-8', isAr && 'flex-row-reverse')}>
         <div>
           <h1 className="text-3xl font-serif font-bold text-cream">
-            {isAr ? 'الإشعارات' : 'Notifications'}
+            {isAr ? 'Ø§Ù„Ø¥Ø´Ø¹Ø§Ø±Ø§Øª' : 'Notifications'}
           </h1>
           {unreadCount > 0 && (
             <p className="text-sm text-text-subdued mt-1">
-              {unreadCount} {isAr ? 'غير مقروء' : 'non lues'}
+              {unreadCount} {isAr ? 'ØºÙŠØ± Ù…Ù‚Ø±ÙˆØ¡' : 'non lues'}
             </p>
           )}
         </div>
@@ -74,7 +74,7 @@ export function NotificationsPage() {
             className="flex items-center gap-2 text-sm text-gold hover:text-gold-dark transition-colors"
           >
             <CheckCheck className="w-4 h-4" />
-            {isAr ? 'تحديد الكل كمقروء' : 'Tout marquer comme lu'}
+            {isAr ? 'ØªØ­Ø¯ÙŠØ¯ Ø§Ù„ÙƒÙ„ ÙƒÙ…Ù‚Ø±ÙˆØ¡' : 'Tout marquer comme lu'}
           </button>
         )}
       </div>
@@ -95,13 +95,14 @@ export function NotificationsPage() {
         <div className="card p-8 text-center">
           <Bell className="w-12 h-12 text-text-subdued mx-auto mb-3" />
           <p className="text-text-subdued">
-            {isAr ? 'لا توجد إشعارات' : 'Aucune notification'}
+            {isAr ? 'Ù„Ø§ ØªÙˆØ¬Ø¯ Ø¥Ø´Ø¹Ø§Ø±Ø§Øª' : 'Aucune notification'}
           </p>
         </div>
       ) : (
         <div className="space-y-2">
           {notifications.map((n) => {
-            const Icon = iconMap[n.type];
+            const Icon = iconMap[n.type] || Bell;
+            const iconColor = colorMap[n.type] || 'bg-text-subdued/10 text-text-subdued';
             return (
               <div
                 key={n.id}
@@ -111,7 +112,7 @@ export function NotificationsPage() {
                 )}
                 onClick={() => markAsRead(n.id)}
               >
-                <div className={cn('w-10 h-10 rounded-full flex items-center justify-center shrink-0', colorMap[n.type])}>
+                <div className={cn('w-10 h-10 rounded-full flex items-center justify-center shrink-0', iconColor)}>
                   <Icon className="w-5 h-5" />
                 </div>
                 <div className="flex-1 min-w-0">
@@ -128,7 +129,7 @@ export function NotificationsPage() {
                     </span>
                     {n.link && (
                       <Link to={n.link} className="text-xs text-gold hover:text-gold-dark">
-                        {isAr ? 'عرض' : 'Voir'} →
+                        {isAr ? 'Ø¹Ø±Ø¶' : 'Voir'} â†’
                       </Link>
                     )}
                   </div>
