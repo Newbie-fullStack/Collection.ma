@@ -5,6 +5,14 @@ set -e
 
 cd /var/www
 
+# If an artisan command was passed (e.g. release_command = "php artisan migrate --force"),
+# run it directly and exit (no persistent server). This is how Fly runs migrations.
+if [ -n "$1" ]; then
+    exec php artisan "$@"
+fi
+
+# --- Normal web process ---
+
 # Generate an application key if not provided via secrets/env
 if [ -z "$APP_KEY" ] || [ "$APP_KEY" = "base64:" ]; then
     php artisan key:generate --force --no-interaction
