@@ -146,8 +146,29 @@ export function AdminDashboard() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-8">
-      <div className={cn('flex gap-6', isAr && 'flex-row-reverse')}>
+    <div className="max-w-7xl mx-auto px-3 sm:px-4 py-8">
+      <div className={cn('flex flex-col md:flex-row gap-6', isAr && 'md:flex-row-reverse')}>
+        {/* Mobile tab navigation (visible below md) */}
+        <nav className="md:hidden -mx-3 sm:-mx-4 px-3 sm:px-4 py-2 mb-4 overflow-x-auto whitespace-nowrap border-b border-gold/10 scrollbar-thin flex gap-1">
+          {menuItems.map((item) => {
+            const Icon = item.icon;
+            return (
+              <button
+                key={item.key}
+                onClick={() => setActiveSection(item.key)}
+                className={cn(
+                  'inline-flex items-center gap-2 px-3 py-2 rounded-full text-sm whitespace-nowrap transition-colors',
+                  activeSection === item.key
+                    ? 'bg-gold/20 text-gold'
+                    : 'text-text-subdued hover:bg-navy-hover hover:text-cream'
+                )}
+              >
+                <Icon className="w-4 h-4" />
+                {menuLabels[item.key]}
+              </button>
+            );
+          })}
+        </nav>
         {/* Sidebar */}
         <aside className="hidden md:block w-64 shrink-0">
           <div className="bg-navy-card border border-gold/15 rounded-lg p-4 sticky top-24 max-h-[calc(100vh-8rem)] overflow-y-auto">
