@@ -14,6 +14,13 @@ class AsBytea implements CastsAttributes
             return null;
         }
 
+        // pdo_pgsql returns bytea as a stream resource — resolve it to raw bytes.
+        if (is_resource($value)) {
+            $content = stream_get_contents($value);
+
+            return $content === false ? '' : $content;
+        }
+
         if (DB::getDriverName() === 'pgsql' && is_string($value) && str_starts_with($value, '\\x')) {
             $hex = substr($value, 2);
 
