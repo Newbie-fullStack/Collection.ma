@@ -56,6 +56,9 @@ COPY --from=frontend-builder /build/frontend/dist /var/www/public
 COPY --from=composer-builder /app/vendor /var/www/vendor
 COPY . /var/www
 
+# Ensure .env exists for package discovery and autoloading during build
+RUN cp .env.example .env
+
 # storage symlink: let Laravel serve uploaded files under /storage
 RUN mkdir -p /var/www/storage/app/public \
     && mkdir -p /var/www/bootstrap/cache \
