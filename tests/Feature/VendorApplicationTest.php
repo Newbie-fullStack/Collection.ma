@@ -204,4 +204,51 @@ class VendorApplicationTest extends TestCase
 
         $response->assertStatus(403);
     }
+
+    public function test_admin_listing_hides_binary_documents(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        $user = $this->buyer();
+
+        VendorApplication::create([
+            'user_id' => $user->id,
+            'date_naissance' => '1995-01-10',
+            'adresse_confirmee' => 'Casablanca',
+            'rib' => 'MA640070700000000000000503',
+            'cin_recto' => hex2bin('ffd8ffe000104a46494600'),
+            'cin_recto_mime' => 'image/jpeg',
+            'statut' => 'en_attente',
+            'date_soumission' => now(),
+        ]);
+
+        $response = $this->actingAs($admin)->getJson('/api/admin/vendor-applications');
+
+        $response->assertOk();
+        $this->assertArrayNotHasKey('cin_recto', $response->json('data.0'));
+        $this->assertArrayNotHasKey('contrat_signe', $response->json('data.0'));
+        $this->assertArrayNotHasKey('cin_verso', $response->json('data.0'));
+    }
+
+    public function test_admin_can_stream_document(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        $user = $this->buyer();
+
+        $app = VendorApplication::create([
+            'user_id' => $user->id,
+            'date_naissance' => '1995-01-10',
+            'adresse_confirmee' => 'Casablanca',
+            'rib' => 'MA640070700000000000000503',
+            'cin_recto' => hex2bin('ffd8ffe000104a46494600'),
+            'cin_recto_mime' => 'image/jpeg',
+            'statut' => 'en_attente',
+            'date_soumission' => now(),
+        ]);
+
+        $response = $this->actingAs($admin)->get("/api/admin/vendor-applications/{$app->id}/document/cin_recto");
+
+        $response->assertOk()
+            ->assertHeader('Content-Type', 'image/jpeg');
+        $this->assertSame('ffd8ffe000104a46494600', bin2hex($response->getContent()));
+    }
 }

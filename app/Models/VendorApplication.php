@@ -54,6 +54,13 @@ class VendorApplication extends Model
         'contrat_signe' => AsBytea::class,
     ];
 
+    protected $hidden = [
+        'cin_recto',
+        'cin_verso',
+        'contrat_pdf_genere',
+        'contrat_signe',
+    ];
+
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
