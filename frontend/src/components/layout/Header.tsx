@@ -71,7 +71,7 @@ export function Header() {
         <div className={cn(
           'flex items-center gap-2 sm:gap-4 h-14 px-3 sm:px-5 rounded-2xl',
           'bg-navy-card/80 border border-gold/15',
-          isAr && 'flex-row-reverse'
+          isAr && 'md:flex-row-reverse'
         )}>
           {/* Logo */}
           <Link to="/" className="shrink-0">
