@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useParams, Navigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext';
 import { ordersApi, walletApi, listingsApi, disputesApi } from '@/api';
@@ -33,6 +33,9 @@ export function SellerDashboard() {
   const isAr = i18n.language === 'ar';
   const { user } = useAuth();
   const { section } = useParams();
+
+  const isSeller = user?.role === 'vendeur' || user?.role === 'both' || user?.role === 'admin';
+
   const [orders, setOrders] = useState<Order[]>([]);
   const [wallet, setWallet] = useState<Wallet | null>(null);
   const [listings, setListings] = useState<Listing[]>([]);
@@ -110,6 +113,10 @@ export function SellerDashboard() {
     'rembourse': isAr ? 'تم الاسترداد' : 'Rembourse',
     'litige': isAr ? 'نزاع' : 'Litige',
   };
+
+  if (!isSeller) {
+    return <Navigate to="/devenir-vendeur" replace />;
+  }
 
   return (
     <div className="max-w-7xl mx-auto px-3 sm:px-4 py-8">

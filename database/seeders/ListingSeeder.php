@@ -82,15 +82,17 @@ class ListingSeeder extends Seeder
             ]);
 
             $dir = storage_path('app/public/placeholders');
-            if (!is_dir($dir)) mkdir($dir, 0755, true);
+            if (! is_dir($dir)) {
+                mkdir($dir, 0755, true);
+            }
 
             $sourceImage = ($counter % 2 === 0) ? base_path('image copy.png') : base_path('image.png');
-            $fileName = 'listing_' . $listing->id . '.png';
-            copy($sourceImage, $dir . '/' . $fileName);
+            $fileName = 'listing_'.$listing->id.'.png';
+            copy($sourceImage, $dir.'/'.$fileName);
 
             ListingPhoto::create([
                 'listing_id' => $listing->id,
-                'path' => 'placeholders/' . $fileName,
+                'path' => 'placeholders/'.$fileName,
                 'ordre' => 0,
                 'is_principale' => true,
             ]);

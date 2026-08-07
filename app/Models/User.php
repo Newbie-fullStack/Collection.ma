@@ -34,6 +34,7 @@ class User extends Authenticatable
         'two_factor_secret',
         'two_factor_recovery_codes',
         'two_factor_confirmed_at',
+        'vendeur_verifie_le',
     ];
 
     protected $hidden = [
@@ -52,6 +53,7 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'cgu_acceptee_le' => 'datetime',
             'two_factor_confirmed_at' => 'datetime',
+            'vendeur_verifie_le' => 'datetime',
             'password' => 'hashed',
         ];
     }
@@ -116,6 +118,11 @@ class User extends Authenticatable
     public function invoices(): HasMany
     {
         return $this->hasMany(Invoice::class);
+    }
+
+    public function vendorApplications(): HasMany
+    {
+        return $this->hasMany(VendorApplication::class);
     }
 
     // --- Helpers ---

@@ -4,7 +4,6 @@ namespace App\Events;
 
 use App\Models\Bid;
 use App\Models\Listing;
-use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
@@ -23,8 +22,8 @@ class NewBidPlaced implements ShouldBroadcast
     public function broadcastOn(): array
     {
         return [
-            new PrivateChannel('listing.' . $this->listing->id),
-            new PrivateChannel('user.' . $this->listing->seller_id),
+            new PrivateChannel('listing.'.$this->listing->id),
+            new PrivateChannel('user.'.$this->listing->seller_id),
         ];
     }
 

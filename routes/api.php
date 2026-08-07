@@ -12,6 +12,7 @@ use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\ReviewController;
 use App\Http\Controllers\Api\SavedSearchController;
+use App\Http\Controllers\Api\VendorApplicationController;
 use App\Http\Controllers\Api\WalletController;
 use Illuminate\Support\Facades\Route;
 
@@ -36,39 +37,47 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/auth/password', [AuthController::class, 'changePassword']);
     Route::delete('/auth/account', [AuthController::class, 'deleteAccount']);
 
-    // Listings (seller)
-    Route::post('/listings', [ListingController::class, 'store']);
-    Route::put('/listings/{listing}', [ListingController::class, 'update']);
-    Route::delete('/listings/{listing}', [ListingController::class, 'destroy']);
-    Route::get('/my-listings', [ListingController::class, 'myListings']);
+    // Listings (seller) — seller-only management
+    Route::middleware('vendeur')->group(function () {
+        Route::post('/listings', [ListingController::class, 'store']);
+        Route::put('/listings/{listing}', [ListingController::class, 'update']);
+        Route::delete('/listings/{listing}', [ListingController::class, 'destroy']);
+        Route::get('/my-listings', [ListingController::class, 'myListings']);
+    });
 
     // Bids
     Route::get('/listings/{listing}/bids', [BidController::class, 'index']);
     Route::post('/listings/{listing}/bids', [BidController::class, 'store']);
     Route::get('/my-bids', [BidController::class, 'myBids']);
-    Route::get('/my-listing-bids', [BidController::class, 'myListingBids']);
 
     // Orders
     Route::get('/orders', [OrderController::class, 'index']);
     Route::post('/orders', [OrderController::class, 'store']);
-    Route::get('/seller-orders', [OrderController::class, 'sellerOrders']);
     Route::get('/orders/{order}', [OrderController::class, 'show']);
-    Route::post('/orders/{order}/ship', [OrderController::class, 'ship']);
     Route::post('/orders/{order}/confirm', [OrderController::class, 'confirmReception']);
-    Route::get('/recent-sales', [OrderController::class, 'recentSales']);
 
-    // Seller invoices
-    Route::get('/seller-invoices', [OrderController::class, 'sellerInvoices']);
-
-    // Seller stats
-    Route::get('/seller-stats', [OrderController::class, 'sellerStats']);
-
-    // Wallet
+    // Wallet (common)
     Route::get('/wallet', [WalletController::class, 'index']);
     Route::get('/wallet/transactions', [WalletController::class, 'transactions']);
     Route::post('/wallet/topup', [WalletController::class, 'topup']);
-    Route::post('/wallet/withdraw', [WalletController::class, 'requestWithdrawal']);
-    Route::get('/wallet/withdrawals', [WalletController::class, 'withdrawals']);
+
+    // Vendor applications (KYC)
+    Route::post('/vendor-applications', [VendorApplicationController::class, 'store']);
+    Route::get('/vendor-applications/me', [VendorApplicationController::class, 'me']);
+    Route::get('/vendor-applications/contract', [VendorApplicationController::class, 'contract']);
+    Route::post('/vendor-applications/{vendorApplication}/resubmit', [VendorApplicationController::class, 'resubmit']);
+
+    // Seller-only routes
+    Route::middleware('vendeur')->group(function () {
+        Route::get('/seller-orders', [OrderController::class, 'sellerOrders']);
+        Route::post('/orders/{order}/ship', [OrderController::class, 'ship']);
+        Route::get('/recent-sales', [OrderController::class, 'recentSales']);
+        Route::get('/seller-invoices', [OrderController::class, 'sellerInvoices']);
+        Route::get('/seller-stats', [OrderController::class, 'sellerStats']);
+        Route::get('/my-listing-bids', [BidController::class, 'myListingBids']);
+        Route::post('/wallet/withdraw', [WalletController::class, 'requestWithdrawal']);
+        Route::get('/wallet/withdrawals', [WalletController::class, 'withdrawals']);
+    });
 
     // Favorites
     Route::get('/favorites', [FavoriteController::class, 'index']);
@@ -143,5 +152,14 @@ Route::middleware('auth:sanctum')->group(function () {
         // Messages
         Route::get('/messages', [MessageController::class, 'adminMessages']);
         Route::put('/messages/{message}/read', [MessageController::class, 'markAsRead']);
+
+        // Vendor applications validation (KYC)
+        Route::get('/vendor-applications', [VendorApplicationController::class, 'adminIndex']);
+        Route::get('/vendor-applications/{vendorApplication}', [VendorApplicationController::class, 'adminShow']);
+        Route::get('/vendor-applications/{vendorApplication}/document/{type}', [VendorApplicationController::class, 'adminDocument']);
+        Route::get('/vendor-applications/{vendorApplication}/contract-download', [VendorApplicationController::class, 'adminContractDownload']);
+        Route::post('/vendor-applications/{vendorApplication}/approve', [VendorApplicationController::class, 'approve']);
+        Route::post('/vendor-applications/{vendorApplication}/reject', [VendorApplicationController::class, 'reject']);
+        Route::post('/vendor-applications/{vendorApplication}/request-complement', [VendorApplicationController::class, 'requestComplement']);
     });
 });

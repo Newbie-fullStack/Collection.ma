@@ -20,7 +20,7 @@ class OrderShipped implements ShouldBroadcast
     public function broadcastOn(): array
     {
         return [
-            new PrivateChannel('user.' . $this->order->buyer_id),
+            new PrivateChannel('user.'.$this->order->buyer_id),
         ];
     }
 

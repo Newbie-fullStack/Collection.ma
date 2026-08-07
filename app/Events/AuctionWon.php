@@ -3,7 +3,6 @@
 namespace App\Events;
 
 use App\Models\Listing;
-use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
@@ -22,8 +21,8 @@ class AuctionWon implements ShouldBroadcast
     public function broadcastOn(): array
     {
         return [
-            new PrivateChannel('user.' . $this->winnerId),
-            new PrivateChannel('listing.' . $this->listing->id),
+            new PrivateChannel('user.'.$this->winnerId),
+            new PrivateChannel('listing.'.$this->listing->id),
         ];
     }
 

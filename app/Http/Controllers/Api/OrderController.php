@@ -6,8 +6,8 @@ use App\Events\OrderShipped;
 use App\Http\Controllers\Controller;
 use App\Models\Invoice;
 use App\Models\Listing;
-use App\Models\Order;
 use App\Models\Notification;
+use App\Models\Order;
 use App\Models\Wallet;
 use App\Services\EscrowService;
 use Illuminate\Http\JsonResponse;
@@ -88,7 +88,7 @@ class OrderController extends Controller
             'title_ar' => 'تم شحن الطلب',
             'message' => "Votre commande #{$order->numero_commande} a été expédiée. Suivi: {$validated['tracking_number']}",
             'message_ar' => "تم شحن طلبك رقم #{$order->numero_commande}. التتبع: {$validated['tracking_number']}",
-            'link' => "/acheteur/commandes",
+            'link' => '/acheteur/commandes',
             'data' => [
                 'order_id' => $order->id,
                 'tracking_number' => $validated['tracking_number'],
@@ -118,7 +118,7 @@ class OrderController extends Controller
             'title_ar' => 'تم تأكيد الاستلام',
             'message' => "La commande #{$order->numero_commande} a été confirmée. Le paiement vous a été viré.",
             'message_ar' => "تم تأكيد استلام الطلب #{$order->numero_commande}. تم تحويل المبلغ لك.",
-            'link' => "/vendeur/ventes",
+            'link' => '/vendeur/ventes',
             'data' => [
                 'order_id' => $order->id,
             ],
@@ -170,6 +170,7 @@ class OrderController extends Controller
 
         if (! $buyerWallet || $buyerWallet->solde_disponible < $total) {
             $solde = $buyerWallet->solde_disponible ?? 0;
+
             return response()->json([
                 'message' => 'Solde insuffisant',
                 'insufficient_funds' => true,
@@ -182,7 +183,7 @@ class OrderController extends Controller
         $commission = EscrowService::calculateCommission($listing->prix_vente);
 
         $order = Order::create([
-            'numero_commande' => 'CMD-' . strtoupper(uniqid()),
+            'numero_commande' => 'CMD-'.strtoupper(uniqid()),
             'listing_id' => $listing->id,
             'buyer_id' => $user->id,
             'seller_id' => $listing->seller_id,

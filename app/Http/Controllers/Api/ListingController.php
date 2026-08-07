@@ -3,9 +3,9 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Category;
 use App\Models\Listing;
 use App\Models\ListingPhoto;
-use App\Models\Category;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -18,6 +18,7 @@ class ListingController extends Controller
             Category::orderBy('ordre_affichage')->orderBy('nom_fr')->get()
         );
     }
+
     public function index(Request $request): JsonResponse
     {
         $query = Listing::with(['seller:id,pseudo,nom,prenom', 'category:id,nom_fr,nom_ar,slug', 'photos'])

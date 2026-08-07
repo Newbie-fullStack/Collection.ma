@@ -129,3 +129,40 @@ export const conversationsApi = {
   sendMessage: (id: number, data: { contenu: string }) => api.post<ChatMessage>(`/conversations/${id}/messages`, data),
   markAsRead: (id: number) => api.put(`/conversations/${id}/read`),
 };
+
+// --- Vendor Applications (KYC) ---
+export interface VendorApplicationStatus {
+  id: number;
+  statut: 'en_attente' | 'complement_demande' | 'valide' | 'refuse';
+  motif_refus?: string | null;
+  message_complement?: string | null;
+  date_soumission: string | null;
+  date_traitement: string | null;
+}
+
+export const vendorApplicationsApi = {
+  me: () => api.get<VendorApplicationStatus | null>('/vendor-applications/me'),
+  submit: (data: FormData) => api.post<VendorApplicationStatus>('/vendor-applications', data),
+  contract: () => api.get<Blob>('/vendor-applications/contract', { responseType: 'blob' }),
+  resubmit: (id: number) => api.post(`/vendor-applications/${id}/resubmit`),
+};
+
+// --- Admin: Vendor Applications ---
+export interface AdminVendorApplication extends VendorApplicationStatus {
+  user_id: number;
+  user?: { id: number; pseudo: string; nom: string; prenom: string; email: string; role: string; statut_kyc: string };
+  date_naissance: string | null;
+  adresse_confirmee: string | null;
+  version_cgv: string;
+  created_at: string;
+}
+
+export const adminVendorApplicationsApi = {
+  list: (params?: Record<string, string | number>) => api.get<PaginatedResponse<AdminVendorApplication>>('/admin/vendor-applications', { params }),
+  show: (id: number) => api.get<AdminVendorApplication>(`/admin/vendor-applications/${id}`),
+  approve: (id: number) => api.post(`/admin/vendor-applications/${id}/approve`),
+  reject: (id: number, motif: string) => api.post(`/admin/vendor-applications/${id}/reject`, { motif }),
+  requestComplement: (id: number, message: string) => api.post(`/admin/vendor-applications/${id}/request-complement`, { message }),
+  documentUrl: (id: number, type: 'cin_recto' | 'cin_verso' | 'contrat_signe') => `/api/admin/vendor-applications/${id}/document/${type}`,
+  contractUrl: (id: number) => `/api/admin/vendor-applications/${id}/contract-download`,
+};

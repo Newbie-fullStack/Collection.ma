@@ -32,6 +32,7 @@ class ConversationController extends Controller
         $conversations->getCollection()->transform(function ($conv) use ($user) {
             $conv->unread_count = $conv->getUnreadCount($user->id);
             $conv->other_user = $conv->getOtherParticipant($user->id);
+
             return $conv;
         });
 
@@ -47,11 +48,11 @@ class ConversationController extends Controller
 
         $totalUnread = Message::whereHas('conversation', function ($q) use ($user) {
             $q->where('user_one_id', $user->id)
-              ->orWhere('user_two_id', $user->id);
+                ->orWhere('user_two_id', $user->id);
         })
-        ->where('sender_id', '!=', $user->id)
-        ->where('lu', false)
-        ->count();
+            ->where('sender_id', '!=', $user->id)
+            ->where('lu', false)
+            ->count();
 
         return response()->json(['count' => $totalUnread]);
     }

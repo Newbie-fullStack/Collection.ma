@@ -5,14 +5,16 @@ import { useParams } from 'react-router-dom';
 import { formatMAD, cn } from '@/lib/utils';
 import {
   LayoutDashboard, Users, Package, MessageSquare, DollarSign,
-  AlertTriangle, FileText, Settings, BarChart3
+  AlertTriangle, FileText, Settings, BarChart3, ShieldCheck
 } from 'lucide-react';
 import api from '@/api/client';
+import { adminVendorApplicationsApi } from '@/api';
 import {
   AdminUsersPage, AdminListingsPage, AdminCategoriesPage,
   AdminAdvertisementsPage, AdminCommissionsPage, AdminDisputesPage,
   AdminInvoicesPage, AdminMessagesPage
 } from './AdminSubPages';
+import { AdminVendorApplicationsPage } from './AdminVendorApplicationsPage';
 
 interface DashboardStats {
   utilisateurs: number;
@@ -32,11 +34,15 @@ export function AdminDashboard() {
   const { section } = useParams();
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [activeSection, setActiveSection] = useState('dashboard');
+  const [pendingVendors, setPendingVendors] = useState(0);
 
   useEffect(() => {
     api.get('/admin/dashboard')
       .then(({ data }) => setStats(data.stats))
       .catch(console.error);
+    adminVendorApplicationsApi.list({ statut: 'en_attente', per_page: 1 })
+      .then(({ data }) => setPendingVendors(data.total || 0))
+      .catch(() => {});
   }, []);
 
   // Keep the active section in sync with the URL (:section param) for deep links.
@@ -63,6 +69,7 @@ export function AdminDashboard() {
     { key: 'commissions', icon: DollarSign },
     { key: 'disputes', icon: AlertTriangle },
     { key: 'invoices', icon: FileText },
+    { key: 'vendeurs', icon: ShieldCheck },
   ];
 
   const menuLabels: Record<string, string> = {
@@ -75,6 +82,7 @@ export function AdminDashboard() {
     commissions: isAr ? 'العمولات' : 'Commissions',
     disputes: isAr ? 'النزاعات' : 'Litiges',
     invoices: isAr ? 'الفواتير' : 'Factures',
+    vendeurs: isAr ? 'التحقق من البائعين' : 'Validation vendeurs',
   };
 
   const statCards = stats ? [
@@ -87,6 +95,8 @@ export function AdminDashboard() {
     { label: isAr ? 'إجمالي العمولات' : 'CA Commissions', value: formatMAD(stats.ca_total, i18n.language), icon: DollarSign, color: 'text-green' },
     { label: isAr ? 'في انتظار السحب' : 'En attente', value: formatMAD(stats.en_attente_virement, i18n.language), icon: DollarSign, color: 'text-gold' },
   ] : [];
+
+  const pendingVendorCard = { label: isAr ? 'Demandes vendeurs en attente' : 'Demandes vendeurs en attente', value: pendingVendors, icon: ShieldCheck, color: 'text-yellow' };
 
   const renderContent = () => {
     if (activeSection === 'dashboard') {
@@ -134,6 +144,20 @@ export function AdminDashboard() {
                 </div>
               );
             })}
+            <button
+              onClick={() => goToSection('vendeurs')}
+              className="card p-4 text-left border-2 border-yellow/20 hover:border-yellow/50 transition-colors"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded bg-yellow/10 flex items-center justify-center">
+                  <ShieldCheck className="w-5 h-5 text-yellow" />
+                </div>
+                <div>
+                  <p className="text-xs text-text-subdued">{pendingVendorCard.label}</p>
+                  <p className="text-xl font-bold text-yellow">{pendingVendorCard.value}</p>
+                </div>
+              </div>
+            </button>
           </div>
           <div className="card p-6">
             <h2 className="font-semibold text-cream mb-4">
@@ -156,6 +180,7 @@ export function AdminDashboard() {
       disputes: <AdminDisputesPage />,
       invoices: <AdminInvoicesPage />,
       messages: <AdminMessagesPage />,
+      vendeurs: <AdminVendorApplicationsPage />,
     };
 
     return pages[activeSection] || null;

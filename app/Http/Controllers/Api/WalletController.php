@@ -41,7 +41,7 @@ class WalletController extends Controller
         ]);
 
         $amount = round($validated['amount'], 2);
-        $reference = 'DEP-' . strtoupper(Str::random(10));
+        $reference = 'DEP-'.strtoupper(Str::random(10));
 
         return DB::transaction(function () use ($request, $amount, $reference) {
             $wallet = Wallet::firstOrCreate(

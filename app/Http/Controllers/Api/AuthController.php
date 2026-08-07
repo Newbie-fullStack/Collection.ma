@@ -7,9 +7,7 @@ use App\Models\User;
 use App\Models\Wallet;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rules\Password as PasswordRule;
@@ -65,7 +63,7 @@ class AuthController extends Controller
             'rib' => $request->rib,
             'password' => $request->password,
             'langue_preferee' => $request->langue_preferee ?? 'fr',
-            'role' => 'both',
+            'role' => 'acheteur',
             'cgu_acceptee_version' => '1.0',
             'cgu_acceptee_le' => now(),
             'cgu_acceptee_ip' => $request->ip(),

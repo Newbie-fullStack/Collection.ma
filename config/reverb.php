@@ -1,5 +1,8 @@
 <?php
 
+use Laravel\Reverb\Http\Middleware\ApproveApps;
+use Laravel\Reverb\Http\Middleware\Authenticate;
+
 return [
 
     'apps' => [
@@ -34,8 +37,8 @@ return [
 
     'middleware' => [
         'api' => [
-            Laravel\Reverb\Http\Middleware\ApproveApps::class,
-            Laravel\Reverb\Http\Middleware\Authenticate::class,
+            ApproveApps::class,
+            Authenticate::class,
         ],
     ],
 

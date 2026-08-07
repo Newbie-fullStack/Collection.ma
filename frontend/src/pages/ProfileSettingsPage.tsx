@@ -5,7 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { authApi } from '@/api';
 import { useToast } from '@/contexts/ToastContext';
 import { cn } from '@/lib/utils';
-import { User, Lock, Globe, Save, Eye, EyeOff, Trash2 } from 'lucide-react';
+import { User, Lock, Globe, Save, Eye, EyeOff, Trash2, BadgeCheck } from 'lucide-react';
 
 export function ProfileSettingsPage() {
   const { t, i18n } = useTranslation();
@@ -15,6 +15,7 @@ export function ProfileSettingsPage() {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState<'profile' | 'password' | 'preferences'>('profile');
   const [loading, setLoading] = useState(false);
+  const isSeller = user?.role === 'vendeur' || user?.role === 'both';
 
   const [profileForm, setProfileForm] = useState({
     pseudo: '',
@@ -92,6 +93,11 @@ export function ProfileSettingsPage() {
     { key: 'preferences' as const, icon: Globe, label: isAr ? 'التفضيلات' : 'Preferences' },
   ];
 
+  const sellerTab = !isSeller
+    ? { key: 'vendeur' as const, icon: BadgeCheck, label: isAr ? 'كن بائعاً' : 'Devenir vendeur' }
+    : null;
+  const allTabs = sellerTab ? [...tabs, sellerTab] : tabs;
+
   return (
     <div className="max-w-4xl mx-auto px-4 py-8 sm:py-12">
       <h1 className={cn('text-2xl sm:text-3xl font-serif font-bold text-cream mb-6 sm:mb-8', isAr && 'text-right')}>
@@ -102,12 +108,18 @@ export function ProfileSettingsPage() {
         {/* Tabs */}
         <div className="w-full sm:w-56 shrink-0">
           <nav className="flex sm:flex-col gap-1 overflow-x-auto">
-            {tabs.map((tab) => {
+            {allTabs.map((tab) => {
               const Icon = tab.icon;
               return (
                 <button
                   key={tab.key}
-                  onClick={() => setActiveTab(tab.key)}
+                  onClick={() => {
+                    if (tab.key === 'vendeur') {
+                      navigate('/devenir-vendeur');
+                      return;
+                    }
+                    setActiveTab(tab.key);
+                  }}
                   className={cn(
                     'w-full flex items-center gap-3 px-4 py-3 rounded text-sm font-medium transition-colors text-left',
                     activeTab === tab.key
