@@ -67,6 +67,9 @@ RUN mkdir -p /var/www/storage/app/public \
 # Regenerate the optimized autoloader from the real source tree
 RUN composer dump-autoload --optimize --no-dev --no-scripts
 
+# Regenerate package discovery (excludes dev-only providers like Pail/Sail)
+RUN php artisan package:discover --ansi
+
 # FrankenPHP serves index.php via Caddy configured in the Caddyfile
 ENV APP_ENV=production
 

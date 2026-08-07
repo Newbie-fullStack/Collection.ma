@@ -14,19 +14,23 @@
 	encode zstd gzip
 
 	# ---- Laravel API routes ----
-	handle /api/* /sanctum/* /up {
+	@backend {
+		path /api/* /sanctum/* /up
+	}
+	handle @backend {
 		php_server {
-			root * /var/www/html
+			root /var/www/html
 		}
 	}
 
 	# ---- Uploaded media under /storage ----
 	# /storage is a symlink to storage/app/public (mounted volume)
-	handle /storage/* {
+	@media {
+		path /storage/*
+	}
+	handle @media {
 		root * /var/www/html/storage
-		php_server {
-			root * /var/www/html
-		}
+		file_server
 	}
 
 	# ---- SPA static assets + client-side routing fallback ----

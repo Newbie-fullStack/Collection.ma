@@ -37,3 +37,6 @@ logo-removebg.png
 logocomplet.png
 playwright-report
 test-results
+
+# --- Laravel runtime cache (regenerated on boot) ---
+bootstrap/cache/*.php
