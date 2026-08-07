@@ -140,6 +140,21 @@ export interface Dispute {
   created_at: string;
 }
 
+export interface SavedSearch {
+  id: number;
+  user_id: number;
+  nom: string;
+  mot_cle?: string | null;
+  category_id?: number | null;
+  prix_min?: number | null;
+  prix_max?: number | null;
+  mode?: string | null;
+  alerte_active: boolean;
+  frequence_alerte: string;
+  created_at: string;
+  category?: { id: number; nom_fr: string; nom_ar: string; slug: string } | null;
+}
+
 export interface Advertisement {
   id: number;
   titre: string;

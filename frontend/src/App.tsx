@@ -28,6 +28,7 @@ import { HelpPage } from '@/pages/public/HelpPage';
 import { CGUPage } from '@/pages/public/CGUPage';
 import { AdvancedSearchPage } from '@/pages/public/AdvancedSearchPage';
 import { BlogPage } from '@/pages/public/BlogPage';
+import { BlogDetailPage } from '@/pages/public/BlogDetailPage';
 import { BecomeSellerPage } from '@/pages/public/BecomeSellerPage';
 import { CheckoutPage } from '@/pages/checkout/CheckoutPage';
 import { WalletPage } from '@/pages/wallet/WalletPage';
@@ -59,6 +60,7 @@ function App() {
                 <Route path="/aide" element={<HelpPage />} />
                 <Route path="/cgu" element={<CGUPage />} />
               <Route path="/blog" element={<BlogPage />} />
+              <Route path="/blog/:slug" element={<BlogDetailPage />} />
 
                 {/* Auth */}
                 <Route path="/auth/login" element={<LoginPage />} />

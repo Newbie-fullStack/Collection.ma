@@ -48,29 +48,6 @@ export function AdvancedSearchPage() {
     navigate(`/listings?${params.toString()}`);
   };
 
-  const categories = [
-    { id: 1, label: 'Monnaies / عملات' },
-    { id: 2, label: 'Timbres / طوابع' },
-    { id: 3, label: 'Billets / نقود ورقية' },
-    { id: 4, label: 'Montres / ساعات' },
-    { id: 5, label: 'Cartes postales / بطاقات بريدية' },
-    { id: 6, label: 'Enveloppes / ظرف' },
-    { id: 7, label: 'Bijoux / مجوهرات' },
-    { id: 8, label: 'Statues / تماثيل' },
-    { id: 9, label: 'Céramiques / سيراميك' },
-    { id: 10, label: 'Machinerie / آلات' },
-    { id: 11, label: 'Manuscrits / مخطوطات' },
-    { id: 12, label: 'Livres anciens / كتب قديمة' },
-    { id: 13, label: 'Voitures miniatures / سيارات مصغرة' },
-    { id: 14, label: 'Bronzes / برونز' },
-    { id: 15, label: 'Habillements anciens / ملابس قديمة' },
-    { id: 16, label: 'Militaria / عسكريات' },
-    { id: 17, label: 'Cartes Pokémon / كروت بوكيمون' },
-    { id: 18, label: 'Collections complètes / مجموعات كاملة' },
-    { id: 19, label: 'Science & Technique / علوم وتكنولوجيا' },
-    { id: 20, label: 'Divers / متنوع' },
-  ];
-
   return (
     <div className="max-w-3xl mx-auto px-4 py-12">
       <h1 className={cn('text-3xl font-serif font-bold text-cream mb-8', isAr && 'text-right')}>

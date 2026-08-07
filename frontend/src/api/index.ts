@@ -1,5 +1,5 @@
 import api from './client';
-import type { User, PaginatedResponse, Listing, Bid, Order, Wallet, WalletTransaction, Review, Dispute, Category, AppNotification, Invoice, SellerStats } from '@/types';
+import type { User, PaginatedResponse, Listing, Bid, Order, Wallet, WalletTransaction, Review, Dispute, Category, AppNotification, Invoice, SellerStats, SavedSearch } from '@/types';
 
 // --- Auth ---
 export const authApi = {
@@ -76,6 +76,14 @@ export const disputesApi = {
 // --- Categories ---
 export const categoriesApi = {
   list: () => api.get<Category[]>('/categories'),
+};
+
+// --- Saved Searches ---
+export const savedSearchesApi = {
+  list: () => api.get<SavedSearch[]>('/saved-searches'),
+  create: (data: Record<string, unknown>) => api.post<SavedSearch>('/saved-searches', data),
+  update: (id: number, data: Record<string, unknown>) => api.put<SavedSearch>(`/saved-searches/${id}`, data),
+  remove: (id: number) => api.delete(`/saved-searches/${id}`),
 };
 
 // --- Notifications ---
