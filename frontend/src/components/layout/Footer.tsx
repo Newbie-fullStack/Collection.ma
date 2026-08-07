@@ -48,7 +48,7 @@ export function Footer() {
       {/* Reassurance bar */}
       <div className="border-b border-gold/10">
         <div className="max-w-7xl mx-auto px-4 py-6">
-          <div className="grid grid-cols-2 md:grid-cols-6 gap-4 text-center">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4 text-center">
             {(isAr
               ? ['اصلالية موثوقة', 'دفع امن', 'بائعون موثوقون', 'licitات وشراء مباشر', 'توصيل دولي', 'خدمة عملاء']
               : ['Authenticite verifiee', 'Paiement securise', 'Vendeurs verifies', 'Encheres & Achat direct', 'Livraison internationale', 'Service client reactif']
@@ -66,7 +66,7 @@ export function Footer() {
 
       {/* Main footer */}
       <div className="max-w-7xl mx-auto px-4 py-10">
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-8">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-6 sm:gap-8">
           {/* Logo + description */}
           <div className={cn('md:col-span-1', isAr && 'md:order-last')}>
             <Logo variant="light" size="md" />

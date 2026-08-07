@@ -45,7 +45,7 @@ export function CategoryGrid() {
         </Link>
       </div>
 
-      <div className="grid grid-cols-5 sm:grid-cols-10 gap-3">
+      <div className="grid grid-cols-4 sm:grid-cols-5 lg:grid-cols-10 gap-2 sm:gap-3">
         {categories.map((cat) => {
           const Icon = cat.Icon;
           return (
@@ -53,14 +53,14 @@ export function CategoryGrid() {
               key={cat.id}
               to={`/listings?category=${cat.id}`}
               className={cn(
-                'group flex flex-col items-center gap-2 p-3 rounded-xl bg-navy-card border border-gold/10 hover:border-gold/30 hover:bg-navy-hover transition-all duration-200',
+                'group flex flex-col items-center gap-1.5 sm:gap-2 p-2 sm:p-3 rounded-xl bg-navy-card border border-gold/10 hover:border-gold/30 hover:bg-navy-hover transition-all duration-200',
                 isAr && 'text-right'
               )}
             >
-              <div className="w-12 h-12 rounded-full bg-gold/10 group-hover:bg-gold/20 flex items-center justify-center transition-all duration-200 group-hover:scale-110">
-                <Icon className="w-5 h-5 text-gold" strokeWidth={1.5} />
+              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-gold/10 group-hover:bg-gold/20 flex items-center justify-center transition-all duration-200 group-hover:scale-110">
+                <Icon className="w-4 h-4 sm:w-5 sm:h-5 text-gold" strokeWidth={1.5} />
               </div>
-              <p className="text-[10px] font-medium text-text-subdued group-hover:text-cream leading-tight text-center w-full">
+              <p className="text-[9px] sm:text-[10px] font-medium text-text-subdued group-hover:text-cream leading-tight text-center w-full">
                 {isAr ? cat.ar : cat.fr}
               </p>
             </Link>

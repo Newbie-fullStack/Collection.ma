@@ -69,7 +69,7 @@ export function Header() {
 
         {/* Row 1: Logo + Search + Actions */}
         <div className={cn(
-          'flex items-center gap-4 h-14 px-5 rounded-2xl',
+          'flex items-center gap-2 sm:gap-4 h-14 px-3 sm:px-5 rounded-2xl',
           'bg-navy-card/80 border border-gold/15',
           isAr && 'flex-row-reverse'
         )}>

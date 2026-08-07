@@ -182,7 +182,7 @@ export function HomePage() {
           </div>
 
           {loading ? (
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 mt-4">
               {Array.from({ length: 8 }).map((_, i) => (
                 <div key={i} className="card animate-pulse">
                   <div className="aspect-square bg-navy-hover" />
@@ -194,7 +194,7 @@ export function HomePage() {
               ))}
             </div>
           ) : (
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 mt-4">
               {listings.map((listing) => (
                 <ListingCard key={listing.id} listing={listing} />
               ))}
