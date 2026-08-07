@@ -198,7 +198,10 @@ class OrderController extends Controller
         $buyerWallet->debit($total, 'paiement', $order->id, "Paiement pour la commande #{$order->numero_commande}");
         $order = EscrowService::capturePayment($order);
 
-        return response()->json($order->load('listing'), 201);
+        // Mark listing as sold so it leaves the catalog
+        $listing->update(['statut' => 'vendue']);
+
+        return response()->json($order->load(['listing', 'seller:pseudo']), 201);
     }
 
     public function sellerInvoices(Request $request): JsonResponse

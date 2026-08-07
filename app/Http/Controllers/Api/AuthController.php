@@ -19,9 +19,9 @@ class AuthController extends Controller
     public function register(Request $request): JsonResponse
     {
         $validator = Validator::make($request->all(), [
-            'pseudo' => 'nullable|string|max:50|unique:users,pseudo',
-            'nom' => 'nullable|string|max:100',
-            'prenom' => 'nullable|string|max:100',
+            'pseudo' => 'required|string|max:50|unique:users,pseudo',
+            'nom' => 'required|string|max:100',
+            'prenom' => 'required|string|max:100',
             'age' => 'required|integer|min:18|max:120',
             'gsm' => 'required|string|max:20',
             'email' => 'required|email|unique:users,email',
@@ -41,6 +41,9 @@ class AuthController extends Controller
             'password.numbers' => 'Le mot de passe doit contenir au moins un chiffre',
             'cgu_acceptee.accepted' => 'Vous devez accepter les conditions générales',
             'age.min' => 'Vous devez avoir au moins 18 ans',
+            'pseudo.required' => 'Le pseudo est obligatoire',
+            'nom.required' => 'Le nom est obligatoire',
+            'prenom.required' => 'Le prénom est obligatoire',
             'age.required' => 'L\'âge est obligatoire',
             'gsm.required' => 'Le téléphone est obligatoire',
             'adresse_exacte.required' => 'L\'adresse est obligatoire',

@@ -83,15 +83,16 @@ class WalletController extends Controller
         }
 
         return DB::transaction(function () use ($user, $wallet, $amount) {
-            $wallet->debit($amount, 'retrait', null, "Demande de retrait vers {$user->rib}");
-            $wallet->decrement('solde_en_attente', 0); // Will be handled by admin
+            // Hold the requested amount: remove from available, park it pending admin review.
+            $wallet->decrement('solde_disponible', $amount);
+            $wallet->increment('solde_en_attente', $amount);
 
             WalletTransaction::create([
                 'wallet_id' => $wallet->id,
                 'type' => 'retrait',
                 'montant' => -$amount,
-                'description' => "Demande de retrait - En attente de traitement",
-                'statut' => 'pending',
+                'description' => "Demande de retrait vers {$user->rib} - En attente de traitement",
+                'statut' => 'en_attente',
             ]);
 
             return response()->json([

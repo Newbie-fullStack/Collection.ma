@@ -126,6 +126,8 @@ class ListingController extends Controller
             'titre' => 'sometimes|string|max:300',
             'description' => 'sometimes|string',
             'category_id' => 'sometimes|exists:categories,id',
+            'mode' => 'sometimes|in:enchere,achat_immediat',
+            'prix_vente' => 'sometimes|numeric|min:0',
             'frais_port' => 'nullable|numeric|min:0',
         ]);
 
