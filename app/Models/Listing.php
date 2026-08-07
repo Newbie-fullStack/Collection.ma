@@ -142,9 +142,14 @@ class Listing extends Model
 
     public function resolveRouteBinding(mixed $value, $field = null): ?Model
     {
-        return static::query()
-            ->where('id', $value)
-            ->orWhere('numero_auto', $value)
-            ->first();
+        $query = static::query();
+
+        if (is_numeric($value) || ctype_digit((string) $value)) {
+            $query->where('id', (int) $value);
+        } else {
+            $query->where('numero_auto', $value);
+        }
+
+        return $query->first();
     }
 }
