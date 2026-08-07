@@ -40,7 +40,6 @@ RUN install-php-extensions \
     exif \
     pcntl \
     zip \
-    pcov \
     mbstring
 
 ENV COMPOSER_ALLOW_SUPERUSER=1
