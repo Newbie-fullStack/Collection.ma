@@ -1,5 +1,5 @@
 import api from './client';
-import type { User, PaginatedResponse, Listing, Bid, Order, Wallet, WalletTransaction, Review, Dispute, Category, AppNotification, Invoice, SellerStats, SavedSearch } from '@/types';
+import type { User, PaginatedResponse, Listing, Bid, Order, Wallet, WalletTransaction, Review, Dispute, Category, AppNotification, Invoice, SellerStats, SavedSearch, Offer } from '@/types';
 
 // --- Auth ---
 export const authApi = {
@@ -23,6 +23,7 @@ export const listingsApi = {
   update: (id: number, data: Record<string, unknown>) => api.put<Listing>(`/listings/${id}`, data),
   delete: (id: number) => api.delete(`/listings/${id}`),
   myListings: (params?: Record<string, string | number>) => api.get<PaginatedResponse<Listing>>('/my-listings', { params }),
+  sellerProfile: (userId: number) => api.get<{ vendeur: User; listings: PaginatedResponse<Listing> }>(`/vendeurs/${userId}`),
 };
 
 // --- Bids ---
@@ -72,6 +73,16 @@ export const disputesApi = {
   list: (params?: Record<string, string | number>) => api.get<PaginatedResponse<Dispute>>('/disputes', { params }),
   create: (data: { order_id: number; raison: string; description: string }) => api.post<Dispute>('/disputes', data),
   get: (id: number) => api.get<Dispute>(`/disputes/${id}`),
+};
+
+// --- Offers ---
+export const offersApi = {
+  create: (listingId: number, data: { montant: number; message?: string }) => api.post<Offer>(`/listings/${listingId}/offers`, data),
+  myOffers: (params?: Record<string, string | number>) => api.get<PaginatedResponse<Offer>>('/my-offers', { params }),
+  cancel: (id: number) => api.post(`/offers/${id}/cancel`),
+  sellerOffers: (params?: Record<string, string | number>) => api.get<PaginatedResponse<Offer>>('/seller-offers', { params }),
+  accept: (id: number) => api.post(`/offers/${id}/accept`),
+  reject: (id: number) => api.post(`/offers/${id}/reject`),
 };
 
 // --- Categories ---

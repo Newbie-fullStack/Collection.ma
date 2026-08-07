@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { cn, formatMAD } from '@/lib/utils';
-import { ordersApi, bidsApi, reviewsApi } from '@/api';
-import type { Invoice, Order, Bid } from '@/types';
+import { ordersApi, bidsApi, reviewsApi, offersApi } from '@/api';
+import type { Invoice, Order, Bid, Offer } from '@/types';
 import { FileText, Download, Eye, Clock, CheckCircle, Package, Star, X } from 'lucide-react';
 
 export function SellerInvoicesPage() {
@@ -248,23 +248,56 @@ export function SellerSalesPage() {
 }
 
 export function SellerOffersPage() {
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
   const isAr = i18n.language === 'ar';
-  const [bids, setBids] = useState<Bid[]>([]);
+  const [offers, setOffers] = useState<Offer[]>([]);
   const [loading, setLoading] = useState(true);
+  const [acting, setActing] = useState<number | null>(null);
 
-  useEffect(() => {
-    bidsApi.myListingBids({ per_page: 30 })
-      .then(({ data }) => setBids(data.data || []))
-      .catch(() => setBids([]))
+  const load = () => {
+    setLoading(true);
+    offersApi.sellerOffers({ per_page: 30 })
+      .then(({ data }) => setOffers(data.data || []))
+      .catch(() => setOffers([]))
       .finally(() => setLoading(false));
-  }, []);
+  };
+  useEffect(load, []);
+
+  const handleAccept = async (offerId: number) => {
+    setActing(offerId);
+    try {
+      await offersApi.accept(offerId);
+      load();
+    } catch (err: any) {
+      alert(err.response?.data?.message || (isAr ? 'خطأ' : 'Erreur'));
+    } finally {
+      setActing(null);
+    }
+  };
+
+  const handleReject = async (offerId: number) => {
+    setActing(offerId);
+    try {
+      await offersApi.reject(offerId);
+      load();
+    } catch (err: any) {
+      alert(err.response?.data?.message || (isAr ? 'خطأ' : 'Erreur'));
+    } finally {
+      setActing(null);
+    }
+  };
 
   const statutLabel: Record<string, string> = {
-    active: isAr ? 'نشط' : 'Active',
-    gagnee: isAr ? 'فائزة' : 'Gagnée',
-    perdue: isAr ? 'خاسرة' : 'Perdue',
+    en_attente: isAr ? 'في الانتظار' : 'En attente',
+    acceptee: isAr ? 'مقبولة' : 'Acceptée',
+    refusee: isAr ? 'مرفوضة' : 'Refusée',
     annulee: isAr ? 'ملغاة' : 'Annulée',
+  };
+  const statutClass: Record<string, string> = {
+    en_attente: 'badge-gold',
+    acceptee: 'badge-green',
+    refusee: 'badge-red',
+    annulee: 'badge',
   };
 
   return (
@@ -282,7 +315,7 @@ export function SellerOffersPage() {
             </div>
           ))}
         </div>
-      ) : bids.length === 0 ? (
+      ) : offers.length === 0 ? (
         <div className="card p-8 text-center">
           <Eye className="w-12 h-12 text-text-subdued mx-auto mb-3" />
           <p className="text-text-subdued">
@@ -291,29 +324,50 @@ export function SellerOffersPage() {
         </div>
       ) : (
         <div className="space-y-3">
-          {bids.map(bid => (
-            <div key={bid.id} className="card p-4">
+          {offers.map(offer => (
+            <div key={offer.id} className="card p-4">
               <div className={cn('flex items-center justify-between gap-3', isAr && 'flex-row-reverse')}>
                 <div className="min-w-0">
                   <p className="text-sm font-semibold text-cream truncate">
-                    {bid.bidder?.pseudo || 'Utilisateur'}
+                    {offer.buyer?.pseudo || 'Utilisateur'}
                   </p>
                   <p className="text-xs text-text-subdued truncate mt-0.5">
-                    {bid.listing?.titre}
-                    {bid.listing?.numero_auto ? ` · ${bid.listing.numero_auto}` : ''}
+                    {offer.listing?.titre}
+                    {offer.listing?.numero_auto ? ` · ${offer.listing.numero_auto}` : ''}
                   </p>
+                  {offer.message && (
+                    <p className="text-xs text-text-subdued mt-1 italic">"{offer.message}"</p>
+                  )}
                   <p className={cn('text-[10px] text-text-subdued mt-1', isAr && 'text-right')}>
-                    {new Date(bid.created_at).toLocaleDateString(isAr ? 'ar-MA' : 'fr-MA')}
-                    {bid.is_auto_bid ? ` · ${isAr ? 'عرض تلقائي' : 'auto-enchère'}` : ''}
+                    {new Date(offer.created_at).toLocaleDateString(isAr ? 'ar-MA' : 'fr-MA')}
+                    {offer.listing?.prix_vente ? ` · ${isAr ? 'السعر' : 'Prix'}: ${formatMAD(Number(offer.listing.prix_vente), i18n.language)}` : ''}
                   </p>
                 </div>
                 <div className={cn('text-right shrink-0', isAr && 'text-left')}>
-                  <p className="text-lg font-bold text-gold">{formatMAD(bid.montant)}</p>
-                  <span className="badge badge-gold text-[10px] mt-1">
-                    {statutLabel[bid.statut] || bid.statut}
+                  <p className="text-lg font-bold text-gold">{formatMAD(Number(offer.montant), i18n.language)}</p>
+                  <span className={cn('badge text-[10px] mt-1', statutClass[offer.statut])}>
+                    {statutLabel[offer.statut] || offer.statut}
                   </span>
                 </div>
               </div>
+              {offer.statut === 'en_attente' && (
+                <div className={cn('flex gap-2 mt-3', isAr && 'flex-row-reverse')}>
+                  <button
+                    onClick={() => handleAccept(offer.id)}
+                    disabled={acting === offer.id}
+                    className="btn-gold px-4 py-1.5 text-sm"
+                  >
+                    {acting === offer.id ? '...' : (isAr ? 'قبول' : 'Accepter')}
+                  </button>
+                  <button
+                    onClick={() => handleReject(offer.id)}
+                    disabled={acting === offer.id}
+                    className="btn-gold-outline px-4 py-1.5 text-sm"
+                  >
+                    {isAr ? 'رفض' : 'Refuser'}
+                  </button>
+                </div>
+              )}
             </div>
           ))}
         </div>

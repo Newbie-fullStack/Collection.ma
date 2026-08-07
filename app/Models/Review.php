@@ -18,6 +18,9 @@ class Review extends Model
         'commentaire',
         'reponse_vendeur',
         'reponse_vendeur_texte',
+        'moderation',
+        'signalee',
+        'masquee',
     ];
 
     protected function casts(): array
@@ -25,6 +28,8 @@ class Review extends Model
         return [
             'note' => 'integer',
             'reponse_vendeur' => 'boolean',
+            'signalee' => 'boolean',
+            'masquee' => 'boolean',
         ];
     }
 

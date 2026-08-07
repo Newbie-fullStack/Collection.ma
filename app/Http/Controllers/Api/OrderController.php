@@ -6,10 +6,10 @@ use App\Events\OrderShipped;
 use App\Http\Controllers\Controller;
 use App\Models\Invoice;
 use App\Models\Listing;
-use App\Models\Notification;
 use App\Models\Order;
 use App\Models\Wallet;
 use App\Services\EscrowService;
+use App\Services\NotificationsService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -80,20 +80,20 @@ class OrderController extends Controller
         // Dispatch real-time event
         OrderShipped::dispatch($order);
 
-        // Create notification for buyer
-        Notification::create([
-            'user_id' => $order->buyer_id,
-            'type' => 'order_shipped',
-            'title' => 'Commande expédiée',
-            'title_ar' => 'تم شحن الطلب',
-            'message' => "Votre commande #{$order->numero_commande} a été expédiée. Suivi: {$validated['tracking_number']}",
-            'message_ar' => "تم شحن طلبك رقم #{$order->numero_commande}. التتبع: {$validated['tracking_number']}",
-            'link' => '/acheteur/commandes',
-            'data' => [
+        // Create notification + email for buyer
+        NotificationsService::notify(
+            $order->buyer_id,
+            'order_shipped',
+            'Commande expédiée',
+            'تم شحن الطلب',
+            "Votre commande #{$order->numero_commande} a été expédiée. Suivi: {$validated['tracking_number']}",
+            "تم شحن طلبك رقم #{$order->numero_commande}. التتبع: {$validated['tracking_number']}",
+            '/acheteur/commandes',
+            [
                 'order_id' => $order->id,
                 'tracking_number' => $validated['tracking_number'],
-            ],
-        ]);
+            ]
+        );
 
         return response()->json($order);
     }
@@ -110,19 +110,19 @@ class OrderController extends Controller
 
         $order = EscrowService::confirmReception($order);
 
-        // Create notification for seller
-        Notification::create([
-            'user_id' => $order->seller_id,
-            'type' => 'order_delivered',
-            'title' => 'Commande confirmée',
-            'title_ar' => 'تم تأكيد الاستلام',
-            'message' => "La commande #{$order->numero_commande} a été confirmée. Le paiement vous a été viré.",
-            'message_ar' => "تم تأكيد استلام الطلب #{$order->numero_commande}. تم تحويل المبلغ لك.",
-            'link' => '/vendeur/ventes',
-            'data' => [
+        // Create notification + email for seller
+        NotificationsService::notify(
+            $order->seller_id,
+            'order_delivered',
+            'Commande confirmée',
+            'تم تأكيد الاستلام',
+            "La commande #{$order->numero_commande} a été confirmée. Le paiement vous a été viré.",
+            "تم تأكيد استلام الطلب #{$order->numero_commande}. تم تحويل المبلغ لك.",
+            '/vendeur/ventes',
+            [
                 'order_id' => $order->id,
-            ],
-        ]);
+            ]
+        );
 
         return response()->json($order);
     }

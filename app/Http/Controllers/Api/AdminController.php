@@ -199,4 +199,55 @@ class AdminController extends Controller
 
         return response()->json($query->orderByDesc('created_at')->paginate(30));
     }
+
+    /**
+     * Advanced analytics: time-series of sales & commissions plus key breakdowns.
+     * Period filter: '7d' | '30d' | '90d' | '12m' (default 30d).
+     */
+    public function analytics(Request $request): JsonResponse
+    {
+        $period = $request->get('period', '30d');
+
+        $range = match ($period) {
+            '7d' => now()->subDays(7),
+            '90d' => now()->subDays(90),
+            '12m' => now()->subMonths(12),
+            default => now()->subDays(30),
+        };
+
+        // Daily sales & commissions over the window.
+        $salesSeries = Order::where('statut', 'vire_vendeur')
+            ->where('orders.created_at', '>=', $range)
+            ->selectRaw('DATE(orders.created_at) as jour, SUM(orders.total) as ventes, SUM(orders.commission_montant) as commissions, COUNT(*) as commandes')
+            ->groupBy('jour')
+            ->orderBy('jour')
+            ->get();
+
+        // Sales by category (top sellers).
+        $byCategory = Order::where('orders.created_at', '>=', $range)
+            ->join('listings', 'listings.id', '=', 'orders.listing_id')
+            ->join('categories', 'categories.id', '=', 'listings.category_id')
+            ->selectRaw('categories.nom_fr, COUNT(*) as commandes, SUM(orders.total) as ca')
+            ->groupBy('categories.id', 'categories.nom_fr')
+            ->orderByDesc('ca')
+            ->limit(10)
+            ->get();
+
+        // Top sellers by revenue.
+        $topSellers = Order::where('orders.created_at', '>=', $range)
+            ->join('listings', 'listings.id', '=', 'orders.listing_id')
+            ->join('users', 'users.id', '=', 'listings.seller_id')
+            ->selectRaw('users.pseudo, COUNT(*) as commandes, SUM(orders.total) as ca')
+            ->groupBy('users.id', 'users.pseudo')
+            ->orderByDesc('ca')
+            ->limit(10)
+            ->get();
+
+        return response()->json([
+            'periode' => $period,
+            'series' => $salesSeries,
+            'par_categorie' => $byCategory,
+            'top_vendeurs' => $topSellers,
+        ]);
+    }
 }

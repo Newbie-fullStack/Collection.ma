@@ -44,6 +44,8 @@ class User extends Authenticatable
         'two_factor_recovery_codes',
     ];
 
+    protected $appends = ['est_verifie'];
+
     protected function casts(): array
     {
         return [
@@ -125,6 +127,16 @@ class User extends Authenticatable
         return $this->hasMany(VendorApplication::class);
     }
 
+    public function offersMade(): HasMany
+    {
+        return $this->hasMany(Offer::class, 'buyer_id');
+    }
+
+    public function offersReceived(): HasMany
+    {
+        return $this->hasMany(Offer::class, 'seller_id');
+    }
+
     // --- Helpers ---
 
     public function isAdmin(): bool
@@ -145,5 +157,13 @@ class User extends Authenticatable
     public function getFullNameAttribute(): string
     {
         return "{$this->prenom} {$this->nom}";
+    }
+
+    /**
+     * Whether this user has completed reinforced KYC (verified vendor).
+     */
+    public function getEstVerifieAttribute(): bool
+    {
+        return $this->statut_kyc === 'verifie' && $this->vendeur_verifie_le !== null;
     }
 }

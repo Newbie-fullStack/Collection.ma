@@ -29,6 +29,7 @@ import { CGUPage } from '@/pages/public/CGUPage';
 import { AdvancedSearchPage } from '@/pages/public/AdvancedSearchPage';
 import { BlogPage } from '@/pages/public/BlogPage';
 import { BlogDetailPage } from '@/pages/public/BlogDetailPage';
+import { SellerProfilePage } from '@/pages/public/SellerProfilePage';
 import { BecomeSellerPage } from '@/pages/public/BecomeSellerPage';
 import { CheckoutPage } from '@/pages/checkout/CheckoutPage';
 import { WalletPage } from '@/pages/wallet/WalletPage';
@@ -53,6 +54,7 @@ function App() {
                 <Route path="/listings/:numero_auto" element={<ListingDetailPage />} />
                 <Route path="/categories" element={<CategoriesPage />} />
                 <Route path="/recherche" element={<AdvancedSearchPage />} />
+                <Route path="/vendeur/:userId/profil" element={<SellerProfilePage />} />
 
                 {/* Info */}
                 <Route path="/a-propos" element={<AboutPage />} />

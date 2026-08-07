@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Events\NewConversationMessage;
 use App\Models\Conversation;
 use App\Models\Message;
 use Illuminate\Http\JsonResponse;
@@ -117,19 +118,39 @@ class ConversationController extends Controller
         }
 
         $validated = $request->validate([
-            'contenu' => 'required|string|max:5000',
+            'contenu' => 'nullable|string|max:5000',
+            'attachments' => 'nullable|array|max:5',
+            'attachments.*' => 'file|mimes:jpeg,png,jpg,webp,pdf|max:10240',
         ]);
+
+        // Require either text or at least one attachment.
+        $hasText = ! empty(trim($request->input('contenu', '')));
+        $hasFiles = $request->hasFile('attachments');
+        if (! $hasText && ! $hasFiles) {
+            return response()->json(['message' => 'Un message ou un fichier est requis'], 422);
+        }
+
+        // Store attachment paths.
+        $paths = [];
+        if ($hasFiles) {
+            foreach ($request->file('attachments') as $file) {
+                $paths[] = $file->store('messages/attachments', 'public');
+            }
+        }
 
         $message = Message::create([
             'conversation_id' => $conversation->id,
             'sender_id' => $user->id,
-            'contenu' => $validated['contenu'],
+            'contenu' => $request->input('contenu') ?? '',
+            'attachments' => $paths ?: null,
         ]);
 
         $conversation->update([
             'last_message_id' => $message->id,
             'last_message_at' => now(),
         ]);
+
+        broadcast(new NewConversationMessage($message->fresh(['sender:id,pseudo'])))->toOthers();
 
         return response()->json($message->load('sender:id,pseudo'), 201);
     }

@@ -34,17 +34,23 @@ export function formatDateTime(date: string | Date, locale: string = 'fr'): stri
   }).format(d);
 }
 
-export function getRemainingTime(dateExpiration: string | Date): { jours: number; heures: number; minutes: number } | null {
-  const exp = new Date(dateExpiration);
-  const now = new Date();
-  if (exp <= now) return null;
+export function getTotalSecondsRemaining(dateExpiration: string | Date): number {
+  const exp = new Date(dateExpiration).getTime();
+  const now = Date.now();
+  if (exp <= now) return 0;
+  return Math.floor((exp - now) / 1000);
+}
 
-  const diff = exp.getTime() - now.getTime();
-  const jours = Math.floor(diff / (1000 * 60 * 60 * 24));
-  const heures = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-  const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+export function getRemainingTime(dateExpiration: string | Date): { jours: number; heures: number; minutes: number; secondes: number } | null {
+  const total = getTotalSecondsRemaining(dateExpiration);
+  if (total <= 0) return null;
 
-  return { jours, heures, minutes };
+  return {
+    jours: Math.floor(total / 86400),
+    heures: Math.floor((total % 86400) / 3600),
+    minutes: Math.floor((total % 3600) / 60),
+    secondes: total % 60,
+  };
 }
 
 export function getStatusColor(statut: string): string {
@@ -63,4 +69,11 @@ export function getStatusColor(statut: string): string {
     'suspendue': 'badge-red',
   };
   return colors[statut] || 'badge';
+}
+
+export function getPhotoUrl(photo?: { url?: string; path?: string } | null): string {
+  if (!photo) return '/placeholder-listing.jpg';
+  if (photo.url) return photo.url;
+  if (photo.path) return `/storage/${photo.path}`;
+  return '/placeholder-listing.jpg';
 }

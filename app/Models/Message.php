@@ -17,6 +17,7 @@ class Message extends Model
         'order_id',
         'admin_recipient_id',
         'contenu',
+        'attachments',
         'lu',
     ];
 
@@ -24,6 +25,7 @@ class Message extends Model
     {
         return [
             'lu' => 'boolean',
+            'attachments' => 'array',
         ];
     }
 

@@ -95,6 +95,11 @@
     "photos": "Photos",
     "temps_restant": "Temps restant",
     "nb_offres": "{{count}} offre(s)",
+    "offre_vivante": "vient d'enchérir",
+    "enchere_terminee": "Enchère terminée",
+    "historique_offres": "Historique des offres",
+    "faire_offre": "Faire une offre",
+    "offre_envoyee": "Votre offre a été envoyée",
     "nb_vues": "{{count}} vue(s)",
     "ajoutes_panier": "{{count}} ajouté(s) au panier",
     "statut": {

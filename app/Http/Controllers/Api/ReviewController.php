@@ -14,6 +14,7 @@ class ReviewController extends Controller
     public function index(Request $request): JsonResponse
     {
         $reviews = Review::where('reviewed_id', $request->user()->id)
+            ->where('masquee', false)
             ->with('reviewer:pseudo')
             ->orderByDesc('created_at')
             ->paginate(20);
@@ -63,7 +64,86 @@ class ReviewController extends Controller
 
     protected function updateAverageNote(int $userId): void
     {
-        $avg = Review::where('reviewed_id', $userId)->avg('note');
+        $avg = Review::where('reviewed_id', $userId)
+            ->where('signalee', false)
+            ->where('masquee', false)  // hidden/flagged reviews don't count toward the average
+            ->avg('note');
         User::where('id', $userId)->update(['note_moyenne' => round($avg, 2)]);
+    }
+
+    /**
+     * The reviewed user (typically the seller) replies to a review.
+     */
+    public function reply(Request $request, Review $review): JsonResponse
+    {
+        if ($review->reviewed_id !== $request->user()->id) {
+            return response()->json(['message' => 'Non autorisé'], 403);
+        }
+
+        $validated = $request->validate([
+            'reponse_vendeur_texte' => 'required|string|max:1000',
+        ]);
+
+        $review->update([
+            'reponse_vendeur' => true,
+            'reponse_vendeur_texte' => $validated['reponse_vendeur_texte'],
+        ]);
+
+        return response()->json($review->fresh());
+    }
+
+    /**
+     * Flag a review for moderation (buyer/seller or admin).
+     */
+    public function flag(Request $request, Review $review): JsonResponse
+    {
+        $review->update([
+            'moderation' => 'signalee',
+            'signalee' => true,
+        ]);
+
+        return response()->json(['message' => 'Avis signalé pour modération']);
+    }
+
+    /**
+     * Admin: list reviews for moderation (flagged or all).
+     */
+    public function adminIndex(Request $request): JsonResponse
+    {
+        if (! $request->user()->isAdmin()) {
+            return response()->json(['message' => 'Non autorisé'], 403);
+        }
+
+        $query = Review::with(['reviewer:pseudo', 'reviewed:pseudo', 'order:numero_commande']);
+
+        if ($request->moderation) {
+            $query->where('moderation', $request->moderation);
+        }
+
+        return response()->json($query->orderByDesc('created_at')->paginate(30));
+    }
+
+    /**
+     * Admin decides: validate, keep flagged, or hide a review.
+     */
+    public function administer(Request $request, Review $review): JsonResponse
+    {
+        if (! $request->user()->isAdmin()) {
+            return response()->json(['message' => 'Non autorisé'], 403);
+        }
+
+        $validated = $request->validate([
+            'action' => 'required|in:valider,masquer,reveler',
+        ]);
+
+        $review->update([
+            'moderation' => 'validee', // moderation reflects last admin decision
+            'signalee' => false,
+            'masquee' => $validated['action'] === 'masquer',
+        ]);
+
+        $this->updateAverageNote($review->reviewed_id);
+
+        return response()->json($review->fresh());
     }
 }

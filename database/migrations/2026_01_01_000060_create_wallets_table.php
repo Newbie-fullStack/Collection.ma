@@ -31,6 +31,7 @@ return new class extends Migration
                 'virement_vendeur',
                 'remboursement',
                 'retrait',
+                'paiement',
             ]);
             $table->decimal('montant', 14, 2); // Positive = credit, negative = debit
             $table->string('devise', 3)->default('MAD');

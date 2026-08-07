@@ -60,6 +60,14 @@ return [
             'report' => false,
         ],
 
+        // CDN-backed disk for public media (images/advertisements).
+        // Falls back to local 'public' until AWS_* credentials are provided.
+        'cdn' => [
+            'driver' => env('CDN_DRIVER', 'local') === 's3' ? 's3' : 'local',
+            'root' => storage_path('app/public'),
+            'url' => env('CDN_URL'),
+        ],
+
     ],
 
     /*

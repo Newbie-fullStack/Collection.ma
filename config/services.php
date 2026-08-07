@@ -35,4 +35,22 @@ return [
         ],
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Payment Gateway
+    |--------------------------------------------------------------------------
+    | Driver: 'wallet' (default, simulated) | 'cmi' (CMI/Mastercard - dev sandbox).
+    | Configure real credentials in production.
+    */
+    'payment' => [
+        'driver' => env('PAYMENT_DRIVER', 'wallet'),
+        'cmi' => [
+            'base_url' => env('CMI_BASE_URL', 'https://testpayment.cmi.co.ma/fim/est3Dgate'),
+            'merchant_id' => env('CMI_MERCHANT_ID'),
+            'store_key' => env('CMI_STORE_KEY'),
+            'success_url' => env('CMI_SUCCESS_URL', '/portefeuille'),
+            'fail_url' => env('CMI_FAIL_URL', '/portefeuille/recharger'),
+        ],
+    ],
+
 ];

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Category;
 use App\Models\Listing;
 use App\Models\ListingPhoto;
+use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -19,9 +20,34 @@ class ListingController extends Controller
         );
     }
 
+    /**
+     * Public seller profile: pseudo, verified badge, average rating, active listings.
+     */
+    public function sellerProfile(int $userId): JsonResponse
+    {
+        $seller = User::where('id', $userId)
+            ->whereIn('role', ['vendeur', 'both'])
+            ->first(['id', 'pseudo', 'prenom', 'nom', 'note_moyenne', 'statut_kyc', 'vendeur_verifie_le']);
+
+        if (! $seller) {
+            return response()->json(['message' => 'Vendeur introuvable'], 404);
+        }
+
+        $listings = Listing::where('seller_id', $userId)
+            ->where('statut', 'active')
+            ->with(['category:id,nom_fr,nom_ar,slug', 'photos'])
+            ->latest()
+            ->paginate(20);
+
+        return response()->json([
+            'vendeur' => $seller,
+            'listings' => $listings,
+        ]);
+    }
+
     public function index(Request $request): JsonResponse
     {
-        $query = Listing::with(['seller:id,pseudo,nom,prenom', 'category:id,nom_fr,nom_ar,slug', 'photos'])
+        $query = Listing::with(['seller:id,pseudo,nom,prenom,statut_kyc,vendeur_verifie_le', 'category:id,nom_fr,nom_ar,slug', 'photos'])
             ->where('statut', 'active');
 
         if ($request->category) {
@@ -58,7 +84,7 @@ class ListingController extends Controller
 
     public function show(Listing $listing): JsonResponse
     {
-        $listing->load(['seller:id,pseudo,nom,prenom', 'category:id,nom_fr,nom_ar,slug,icon', 'photos', 'bids' => function ($q) {
+        $listing->load(['seller:id,pseudo,nom,prenom,statut_kyc,vendeur_verifie_le'.', category:id,nom_fr,nom_ar,slug,icon', 'photos', 'bids' => function ($q) {
             $q->with('bidder:id,pseudo')->orderByDesc('montant')->limit(10);
         }]);
 
@@ -78,13 +104,21 @@ class ListingController extends Controller
             'prix_vente' => 'required|numeric|min:0',
             'frais_port' => 'nullable|numeric|min:0',
             'statut' => 'sometimes|in:brouillon,active',
+            'date_publication_planifiee' => 'nullable|date|after:now',
             'photos' => 'nullable|array|max:20',
             'photos.*' => 'image|mimes:jpeg,png,jpg,webp|max:5120',
         ]);
 
         $total = $validated['prix_vente'] + ($validated['frais_port'] ?? 0);
 
-        return DB::transaction(function () use ($validated, $total, $request) {
+        // A scheduled publication keeps the listing as a draft until its date arrives.
+        $isScheduled = ! empty($validated['date_publication_planifiee']);
+        $statut = $validated['statut'] ?? 'active';
+        if ($isScheduled) {
+            $statut = 'brouillon';
+        }
+
+        return DB::transaction(function () use ($validated, $total, $request, $statut, $isScheduled) {
             $listing = Listing::create([
                 'numero_auto' => $this->generateNumero(),
                 'seller_id' => $request->user()->id,
@@ -95,10 +129,11 @@ class ListingController extends Controller
                 'frais_port' => $validated['frais_port'] ?? 0,
                 'total' => $total,
                 'mode' => $validated['mode'],
-                'statut' => $validated['statut'] ?? 'active',
+                'statut' => $statut,
                 'prix_actuel' => $validated['mode'] === 'enchere' ? $validated['prix_vente'] : null,
-                'date_publication' => now(),
-                'date_expiration' => now()->addDays(28),
+                'date_publication' => $isScheduled ? null : now(),
+                'date_publication_planifiee' => $validated['date_publication_planifiee'] ?? null,
+                'date_expiration' => $isScheduled ? null : now()->addDays(28),
             ]);
 
             // Handle photo uploads
@@ -131,9 +166,19 @@ class ListingController extends Controller
             'mode' => 'sometimes|in:enchere,achat_immediat',
             'prix_vente' => 'sometimes|numeric|min:0',
             'frais_port' => 'nullable|numeric|min:0',
+            'date_publication_planifiee' => 'nullable|date|after:now',
         ]);
 
         $listing->update($validated);
+
+        // Scheduling a publication keeps it in draft until the planned date.
+        if (array_key_exists('date_publication_planifiee', $validated)) {
+            if (! empty($validated['date_publication_planifiee'])) {
+                $listing->update(['statut' => 'brouillon', 'date_publication' => null]);
+            } else {
+                $listing->update(['date_publication_planifiee' => null]);
+            }
+        }
 
         if (isset($validated['frais_port']) || isset($validated['prix_vente'])) {
             $listing->update(['total' => $listing->prix_vente + ($listing->frais_port ?? 0)]);

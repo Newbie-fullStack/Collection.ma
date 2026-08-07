@@ -95,6 +95,11 @@
     "photos": "الصور",
     "temps_restant": "الوقت المتبقي",
     "nb_offres": "{{count}} عرض",
+    "offre_vivante": "قدّم عرضًا",
+    "enchere_terminee": "انتهى المزاد",
+    "historique_offres": "آخر العروض",
+    "faire_offre": "تقديم عرض",
+    "offre_envoyee": "تم إرسال عرضك",
     "nb_vues": "{{count}} مشاهدة",
     "ajoutes_panier": "{{count}} تمت إضافتها للسلة",
     "statut": {

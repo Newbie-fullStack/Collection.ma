@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\Notification;
 use App\Models\VendorApplication;
+use App\Services\NotificationsService;
 use App\Services\SimplePdf;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
@@ -242,10 +242,15 @@ class VendorApplicationController extends Controller
             'traite_par' => $request->user()->id,
         ]);
 
-        $this->notify($user, 'vendor_approved',
+        NotificationsService::notify(
+            $user,
+            'vendor_approved',
             'Votre demande vendeur a été approuvée. Votre espace vendeur est actif.',
             'تمت الموافقة على طلب بيعك. مساحة البائع متاحة الآن.',
-            '/vendeur');
+            'Votre demande vendeur a été approuvée. Votre espace vendeur est actif.',
+            'تمت الموافقة على طلب بيعك. مساحة البائع متاحة الآن.',
+            '/vendeur'
+        );
 
         return response()->json(['message' => 'Demande approuvée', 'user_role' => $newRole]);
     }
@@ -263,9 +268,11 @@ class VendorApplicationController extends Controller
             'traite_par' => $request->user()->id,
         ]);
 
-        $this->notify(
+        NotificationsService::notify(
             $vendorApplication->user,
             'vendor_rejected',
+            'Votre demande vendeur a été refusée.',
+            'تم رفض طلب بيعك.',
             'Votre demande vendeur a été refusée. Motif : '.$validated['motif'].'. Vous pouvez soumettre une nouvelle demande.',
             'تم رفض طلب بيعك. السبب: '.$validated['motif'].'. يمكنك إعادة التقديم.',
             '/mon-compte/devenir-vendeur'
@@ -286,27 +293,16 @@ class VendorApplicationController extends Controller
             'traite_par' => $request->user()->id,
         ]);
 
-        $this->notify(
+        NotificationsService::notify(
             $vendorApplication->user,
             'vendor_complement',
+            'Votre demande vendeur nécessite un complément.',
+            'طلبك يتطلب استكمال.',
             'Votre demande vendeur nécessite un complément : '.$validated['message'],
             'طلبك يتطلب استكمال: '.$validated['message'],
             '/mon-compte/devenir-vendeur'
         );
 
         return response()->json(['message' => 'Complément demandé']);
-    }
-
-    protected function notify($user, string $type, string $message, string $messageAr, string $link = '#'): void
-    {
-        Notification::create([
-            'user_id' => $user->id,
-            'type' => $type,
-            'title' => 'Demande vendeur',
-            'title_ar' => 'طلب بيع',
-            'message' => $message,
-            'message_ar' => $messageAr,
-            'link' => $link,
-        ]);
     }
 }

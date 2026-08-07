@@ -6,7 +6,8 @@ use App\Events\NewBidPlaced;
 use App\Http\Controllers\Controller;
 use App\Models\Bid;
 use App\Models\Listing;
-use App\Models\Notification;
+use App\Services\AuctionFraudGuard;
+use App\Services\NotificationsService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -53,6 +54,8 @@ class BidController extends Controller
             ], 422);
         }
 
+        $motif = AuctionFraudGuard::guard($listing, $validated['montant'], (float) $listing->prix_actuel);
+
         $bid = Bid::create([
             'listing_id' => $listing->id,
             'bidder_id' => $request->user()->id,
@@ -60,6 +63,8 @@ class BidController extends Controller
             'auto_bid_max' => $validated['auto_bid_max'] ?? null,
             'is_auto_bid' => isset($validated['auto_bid_max']),
             'statut' => 'active',
+            'suspect' => $motif !== null,
+            'motif_suspect' => $motif,
         ]);
 
         $listing->update(['prix_actuel' => $validated['montant']]);
@@ -67,21 +72,21 @@ class BidController extends Controller
         // Dispatch real-time event
         NewBidPlaced::dispatch($bid, $listing);
 
-        // Create notification for seller
-        Notification::create([
-            'user_id' => $listing->seller_id,
-            'type' => 'bid_placed',
-            'title' => 'Nouvelle enchère',
-            'title_ar' => 'licitة جديدة',
-            'message' => "{$request->user()->pseudo} a enchéri {$validated['montant']} DH sur \"{$listing->titre}\"",
-            'message_ar' => "{$request->user()->pseudo} قدم عرض {$validated['montant']} DH على \"{$listing->titre}\"",
-            'link' => "/listings/{$listing->numero_auto}",
-            'data' => [
+        // Create notification + email for seller
+        NotificationsService::notify(
+            $listing->seller_id,
+            'bid_placed',
+            'Nouvelle enchère',
+            'licitة جديدة',
+            "{$request->user()->pseudo} a enchéri {$validated['montant']} DH sur \"{$listing->titre}\"",
+            "{$request->user()->pseudo} قدم عرض {$validated['montant']} DH على \"{$listing->titre}\"",
+            "/listings/{$listing->numero_auto}",
+            [
                 'listing_id' => $listing->id,
                 'bid_id' => $bid->id,
                 'montant' => $validated['montant'],
-            ],
-        ]);
+            ]
+        );
 
         // Handle auto-bidding
         if (isset($validated['auto_bid_max'])) {

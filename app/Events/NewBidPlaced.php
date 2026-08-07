@@ -4,6 +4,7 @@ namespace App\Events;
 
 use App\Models\Bid;
 use App\Models\Listing;
+use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;

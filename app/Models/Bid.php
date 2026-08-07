@@ -17,6 +17,8 @@ class Bid extends Model
         'auto_bid_max',
         'is_auto_bid',
         'statut',
+        'suspect',
+        'motif_suspect',
     ];
 
     protected function casts(): array
@@ -25,6 +27,7 @@ class Bid extends Model
             'montant' => 'decimal:2',
             'auto_bid_max' => 'decimal:2',
             'is_auto_bid' => 'boolean',
+            'suspect' => 'boolean',
         ];
     }
 

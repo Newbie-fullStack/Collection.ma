@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\MediaService;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -17,6 +18,8 @@ class ListingPhoto extends Model
         'is_principale',
     ];
 
+    protected $appends = ['url'];
+
     protected function casts(): array
     {
         return [
@@ -28,5 +31,10 @@ class ListingPhoto extends Model
     public function listing(): BelongsTo
     {
         return $this->belongsTo(Listing::class);
+    }
+
+    public function getUrlAttribute(): ?string
+    {
+        return MediaService::url($this->path);
     }
 }

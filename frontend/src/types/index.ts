@@ -11,6 +11,7 @@ export interface User {
   wallet?: Wallet;
   role: 'acheteur' | 'vendeur' | 'both' | 'admin';
   statut_kyc: 'non_verifie' | 'en_cours' | 'verifie' | 'rejete';
+  est_verifie?: boolean;
   note_moyenne: number;
   langue_preferee: string;
   created_at: string;
@@ -29,6 +30,7 @@ export interface Category {
 export interface ListingPhoto {
   id: number;
   path: string;
+  url?: string;
   ordre: number;
   is_principale: boolean;
 }
@@ -51,8 +53,8 @@ export interface Listing {
   nb_republications: number;
   nb_vues: number;
   nb_favoris: number;
-  seller?: Pick<User, 'id' | 'pseudo' | 'nom' | 'prenom'>;
-  category?: Category;
+seller?: Pick<User, 'id' | 'pseudo' | 'nom' | 'prenom' | 'est_verifie'>;
+    category?: Category;
   photos?: ListingPhoto[];
   bids?: Bid[];
   created_at: string;
@@ -100,7 +102,7 @@ export interface Order {
   date_virement: string | null;
   listing?: Listing;
   buyer?: Pick<User, 'id' | 'pseudo' | 'nom' | 'prenom'>;
-  seller?: Pick<User, 'id' | 'pseudo' | 'nom' | 'prenom'>;
+  seller?: Pick<User, 'id' | 'pseudo' | 'nom' | 'prenom' | 'est_verifie'>;
   created_at: string;
 }
 
@@ -212,6 +214,21 @@ export interface Invoice {
   created_at: string;
   order?: { numero_commande: string };
   user?: User;
+}
+
+export interface Offer {
+  id: number;
+  listing_id: number;
+  buyer_id: number;
+  seller_id: number;
+  montant: number;
+  message?: string | null;
+  statut: 'en_attente' | 'acceptee' | 'refusee' | 'annulee';
+  date_traitement?: string | null;
+  created_at: string;
+  listing?: { numero_auto: string; titre: string; prix_vente: number; statut?: string; mode?: string };
+  buyer?: Pick<User, 'id' | 'pseudo'>;
+  seller?: Pick<User, 'id' | 'pseudo'>;
 }
 
 export interface SellerStats {

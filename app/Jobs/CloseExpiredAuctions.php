@@ -2,8 +2,10 @@
 
 namespace App\Jobs;
 
+use App\Events\AuctionWon;
 use App\Models\Bid;
 use App\Models\Listing;
+use App\Services\NotificationsService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -58,6 +60,24 @@ class CloseExpiredAuctions implements ShouldQueue
                 'statut' => 'vendue',
                 'prix_actuel' => $winningBid->montant,
             ]);
+
+            // Notify the winner (in-app + email) and broadcast the live win event
+            AuctionWon::dispatch($listing, $winningBid->bidder_id);
+
+            NotificationsService::notify(
+                $winningBid->bidder_id,
+                'auction_won',
+                'Enchère gagnée',
+                'مزاد مكتمل',
+                "Félicitations ! Vous avez remporté \"{$listing->titre}\" à {$winningBid->montant} DH.",
+                "تهانينا! لقد فزت \"{$listing->titre}\" بمبلغ {$winningBid->montant} درهم.",
+                '/listings/'.$listing->numero_auto,
+                [
+                    'listing_id' => $listing->id,
+                    'bid_id' => $winningBid->id,
+                    'prix_final' => $winningBid->montant,
+                ]
+            );
 
             Log::info("Auction closed: {$listing->numero_auto}, winner bid: {$winningBid->montant} MAD");
         } else {

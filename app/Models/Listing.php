@@ -27,7 +27,9 @@ class Listing extends Model
         'prix_actuel',
         'date_publication',
         'date_expiration',
+        'date_publication_planifiee',
         'nb_republications',
+        'extensions_anti_snipe',
         'nb_vues',
         'nb_favoris',
     ];
@@ -41,7 +43,9 @@ class Listing extends Model
             'prix_actuel' => 'decimal:2',
             'date_publication' => 'datetime',
             'date_expiration' => 'datetime',
+            'date_publication_planifiee' => 'datetime',
             'nb_republications' => 'integer',
+            'extensions_anti_snipe' => 'integer',
             'nb_vues' => 'integer',
             'nb_favoris' => 'integer',
         ];
@@ -82,6 +86,11 @@ class Listing extends Model
     public function winningBid(): HasOne
     {
         return $this->hasOne(Bid::class)->where('statut', 'gagnee');
+    }
+
+    public function offers(): HasMany
+    {
+        return $this->hasMany(Offer::class);
     }
 
     // --- Scopes ---

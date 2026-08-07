@@ -13,6 +13,7 @@ class Favorite extends Model
     protected $fillable = [
         'user_id',
         'listing_id',
+        'folder_id',
     ];
 
     public function user(): BelongsTo
@@ -23,5 +24,10 @@ class Favorite extends Model
     public function listing(): BelongsTo
     {
         return $this->belongsTo(Listing::class);
+    }
+
+    public function folder(): BelongsTo
+    {
+        return $this->belongsTo(FavoriteFolder::class);
     }
 }

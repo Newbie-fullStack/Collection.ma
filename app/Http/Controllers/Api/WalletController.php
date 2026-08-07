@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Wallet;
 use App\Models\WalletTransaction;
+use App\Services\PaymentService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -41,7 +42,20 @@ class WalletController extends Controller
         ]);
 
         $amount = round($validated['amount'], 2);
-        $reference = 'DEP-'.strtoupper(Str::random(10));
+
+        // Non-wallet driver (CMI) → create the gateway deposit request (returns redirect/ref).
+        if (PaymentService::driver() !== 'wallet') {
+            $result = PaymentService::createDeposit($request->user()->id, $amount);
+
+            return response()->json([
+                'message' => 'Redirection vers le paiement',
+                'reference' => $result['reference'],
+                'mode' => $result['mode'],
+                'montant' => $amount,
+            ]);
+        }
+
+        $reference = PaymentService::createDeposit($request->user()->id, $amount)['reference'];
 
         return DB::transaction(function () use ($request, $amount, $reference) {
             $wallet = Wallet::firstOrCreate(

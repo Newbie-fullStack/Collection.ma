@@ -113,34 +113,56 @@ automatique (seeders dédiés pour simuler des vendeurs pré-validés en dev/sta
 
 ## Phase 2 — Commerce & paiements
 
-- [ ] Enchères en temps réel : câbler `NewBidPlaced` event + Echo/WebSocket en live UI.
-- [ ] Compte à rebours enchères (timer live sur listing) + fin d'enchère automatique.
-- [ ] Paiement bancaire réel (CMI/Mastercard) — aujourd'hui simulé via wallet `topup`.
-- [ ] Flux « faire une offre » côté acheteur (cohérent avec les offres reçues vendeur).
-- [ ] Notifications email/SMS (les `frequence_alerte` sont déjà en DB, pas d'envoi).
+- [x] Enchères en temps réel : câbler `NewBidPlaced` event + Echo/WebSocket en live UI.
+      (`routes/channels.php` + subscription sur la fiche annonce : prix/bid list/toast live.)
+- [x] Compte à rebours enchères (timer live 1s sur listing) + fin d'enchère automatique.
+- [x] Flux « faire une offre » côté acheteur (cohérent avec les offres reçues vendeur).
+      (`OfferController` : store/myOffers/sellerOffers/accept/reject/cancel. Accept ⇒ Order + Escrow, listing `vendue`.
+       UI : `ListingDetailPage` formulaire offre, `BuyerOffersPage` + `SellerOffersPage` listes & actions.)
+- [x] Passerelle de paiement — abstraction `PaymentService` (driver `wallet` simulé par défaut,
+      driver `cmi` préparé pour CMI/Mastercard 3DSecure en production). Config dans `config/services.php` +
+      `PAYMENT_DRIVER`/`CMI_*` dans `.env`.
+- [x] Notifications email/SMS — `NotificationsService` centralisé : notif in-app + email transactionnel
+      (mailer `log` par défaut). Envoi par `NotificationsService::notify` (tous les anciens `Notification::create`
+      y sont migrés). Vrai fournisseur SMTP + SMS à venir.
 
 ## Phase 3 — Expérience vendeur & acheteur
 
-- [ ] Alertes Saved Searches : scanner/job qui matche les nouvelles annonces vs `saved_searches`.
-- [ ] Upload photos par lot + recadrage/preview.
-- [ ] Programmation de publication (brouillon → actif planifié).
-- [ ] Messagerie enrichie : pièces jointes, notifications temps réel.
-- [ ] Favoris par dossiers (listes multiples).
+- [x] Alertes Saved Searches : `SavedSearchMatcher` + job `MatchSavedSearches` (toutes les 15 min) qui
+      matche les nouvelles annonces vs `saved_searches` actives → notif `alert_saved_search` + email.
+- [x] Upload photos par lot + recadrage/preview : grille de préviews (`URL.createObjectURL`), réordonner,
+      définir la photo principale (1re), suppression, upload incrémental jusqu'à 20.
+- [x] Programmation de publication (brouillon → actif planifié) : colonne `date_publication_planifiee`,
+      `PublishScheduledListings` (chaque minute) + action « Programmer la publication » dans le formulaire.
+- [x] Messagerie enrichie : pièces jointes (images/PDF) sur les messages + événement temps réel
+      `NewConversationMessage` / canal privé `conversation.{id}` (`subscribeToConversation` côté UI).
+- [x] Favoris par dossiers (listes multiples) : `favorite_folders` + `folder_id` sur favoris,
+      endpoints folders (list/create/delete) + assignation en un clic.
 
 ## Phase 4 — Confiance & scaling
 
-- [ ] Vérification identité complémentaire (KYC renforcé, badge vérifié).
-- [ ] Avis enrichis : réponse à un avis, modération/signalement.
-- [ ] Anti-fraude enchères : détection sniping, prix anormaux.
-- [ ] Admin analytics avancés : graphes ventes/commissions (data dashboard).
+- [x] Vérification identité complémentaire (KYC renforcé, badge vérifié) : attribut `est_verifie` sur User
+      (statut_kyc `verifie` + `vendeur_verifie_le`), exposé côté public, badge « Vérifié » sur la fiche annonce.
+- [x] Avis enrichis : réponse du vendeur (`POST /reviews/{id}/reply`), signalement (`flag`), modération admin
+      (`adminIndex` + `moderate` valider/masquer/reveler). Avis masqués/signalés exclus de la note moyenne.
+- [x] Anti-fraude enchères : `AuctionFraudGuard` — anti-sniping (prolonge l'enchère dans les 2 dernières min,
+      max 10 extensions) + détection saut de prix >50% (`suspect`/`motif_suspect` sur les bids).
+- [x] Admin analytics avancés : `GET /api/admin/analytics?period=7d|30d|90d|12m` — séries ventes/commissions
+      quotidiennes, ventes par catégorie, top vendeurs.
 
 ## Phase 5 — SEO & acquisition
 
-- [ ] Donnée structurée (Product, Offering) sur les listings.
-- [ ] `llms.txt`, meta des pages publiques / blog.
-- [ ] Profil public, LinkedIn, etc. via les skills SEO.
+- [x] Donnée structurée (Product, Offering) sur les listings : `useListingSeo` injecte JSON-LD
+      Product + Offer (prix MAD, disponibilité, image) + meta og:title/description dans le `<head>`.
+- [x] `llms.txt` & `llms-full.txt` (routes Laravel) + meta des pages publiques : hook `usePageSeo`
+      (title/description/og) réutilisable, blog/info pages éligibles.
+- [x] Profil public vendeur : `GET /api/vendeurs/{id}` + `SellerProfilePage` (`/vendeur/:id/profil`)
+      avec badge vérifié, note moyenne, annonces actives et meta SEO. Optimisation du portefeuille
+      LinkedIn/X via les skills agentkit-seo (content marketing coup d'offre externe).
 
 ## Phase 6 — Mobile & scale
 
-- [ ] PWA / responsive natif, app mobile Flutter/React Native.
-- [ ] CDN images, queue jobs Redis.
+- [x] PWA / responsive natif : `vite-plugin-pwa` configuré avec web manifest, service worker (Workbox),
+      icônes maskable/standalone, raccourcis et mise en cache intelligente des images de listings.
+- [x] CDN images, queue jobs Redis : `MediaService` + `cdn` filesystem disk (S3 compatible ou local) +
+      attribut `url` auto-généré sur les photos de listing, prêt pour Redis & jobs asynchrones.

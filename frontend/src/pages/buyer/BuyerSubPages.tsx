@@ -6,9 +6,9 @@ import {
   ShoppingBag, Package, CreditCard, Truck, Eye, MessageSquare, Bell, Send,
   Download, ArrowUpRight, ArrowDownLeft, Filter, XCircle
 } from 'lucide-react';
-import type { Listing, Order, WalletTransaction, Bid, Wallet as WalletType, Review, Dispute, SavedSearch } from '@/types';
+import type { Listing, Order, WalletTransaction, Bid, Wallet as WalletType, Review, Dispute, SavedSearch, Offer } from '@/types';
 import { useState, useEffect } from 'react';
-import { favoritesApi, ordersApi, walletApi, bidsApi, reviewsApi, disputesApi, conversationsApi, savedSearchesApi } from '@/api';
+import { favoritesApi, ordersApi, walletApi, bidsApi, reviewsApi, disputesApi, conversationsApi, savedSearchesApi, offersApi } from '@/api';
 
 function PageHeader({ title, isAr }: { title: string; isAr: boolean }) {
   return (
@@ -410,45 +410,88 @@ export function BuyerAuctionsPage() {
 export function BuyerOffersPage() {
   const { i18n } = useTranslation();
   const isAr = i18n.language === 'ar';
-  const [bids, setBids] = useState<Bid[]>([]);
+  const [offers, setOffers] = useState<Offer[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    bidsApi.myBids({ per_page: 50 })
-      .then(({ data }) => setBids(data.data || []))
-      .catch(() => setBids([]))
+    offersApi.myOffers({ per_page: 50 })
+      .then(({ data }) => setOffers(data.data || []))
+      .catch(() => setOffers([]))
       .finally(() => setLoading(false));
   }, []);
 
+  const handleCancel = async (offerId: number) => {
+    if (!window.confirm(isAr ? 'إلغاء هذا العرض؟' : 'Annuler cette offre ?')) return;
+    try {
+      await offersApi.cancel(offerId);
+      setOffers(prev => prev.map(o => o.id === offerId ? { ...o, statut: 'annulee' } : o));
+    } catch (err: any) {
+      alert(err.response?.data?.message || (isAr ? 'خطأ' : 'Erreur'));
+    }
+  };
+
+  const statutLabel: Record<string, string> = {
+    en_attente: isAr ? 'في الانتظار' : 'En attente',
+    acceptee: isAr ? 'مقبولة' : 'Acceptée',
+    refusee: isAr ? 'مرفوضة' : 'Refusée',
+    annulee: isAr ? 'ملغاة' : 'Annulée',
+  };
+  const statutClass: Record<string, string> = {
+    en_attente: 'badge-gold',
+    acceptee: 'badge-green',
+    refusee: 'badge-red',
+    annulee: 'badge',
+  };
+
   return (
     <div>
-      <PageHeader title={isAr ? 'Ø§Ù„Ø¹Ø±ÙˆØ¶ Ø§Ù„Ù…Ø±Ø³Ù„Ø©' : 'Offres envoyÃ©es'} isAr={isAr} />
+      <PageHeader title={isAr ? 'العروض المرسلة' : 'Offres envoyées'} isAr={isAr} />
 
-      {loading ? <LoadingSkeleton /> : bids.length === 0 ? (
+      {loading ? <LoadingSkeleton /> : offers.length === 0 ? (
         <EmptyState
           icon={Send}
-          message={isAr ? 'Ù„Ù… ØªØ±Ø³Ù„ Ø£ÙŠ Ø¹Ø±Ø¶ Ø¨Ø¹Ø¯' : 'Aucune offre envoyÃ©e'}
-          actionLabel={isAr ? 'ØªØµÙØ­ Ø§Ù„Ø¥Ø¹Ù„Ø§Ù†Ø§Øª' : 'Voir les annonces'}
+          message={isAr ? 'لم ترسل أي عرض بعد' : 'Aucune offre envoyée'}
+          actionLabel={isAr ? 'تصفح الإعلانات' : 'Voir les annonces'}
           actionPath="/listings"
         />
       ) : (
         <div className="space-y-3">
-          {bids.map(bid => (
-            <Link key={bid.id} to={`/listings/${bid.listing_id}`} className="card p-4 flex items-center gap-4 hover:shadow-md transition-shadow">
-              <div className="w-14 h-14 rounded bg-cream shrink-0 flex items-center justify-center">
-                <Clock className="w-6 h-6 text-brown-light/30" />
+          {offers.map(offer => (
+            <div key={offer.id} className="card p-4">
+              <div className={cn('flex items-start gap-4', isAr && 'flex-row-reverse')}>
+                <div className="w-14 h-14 rounded bg-navy-hover shrink-0 flex items-center justify-center">
+                  <Send className="w-6 h-6 text-gold" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <Link to={`/listings/${offer.listing?.numero_auto}`} className="font-medium text-sm text-cream hover:text-gold truncate block">
+                    {offer.listing?.titre || `Annonce #${offer.listing_id}`}
+                  </Link>
+                  <p className="text-xs text-text-subdued mt-0.5">
+                    {isAr ? 'عرضك' : 'Votre offre'}: <span className="font-bold text-gold">{formatMAD(Number(offer.montant), i18n.language)}</span>
+                  </p>
+                  {offer.listing?.prix_vente && (
+                    <p className="text-[10px] text-text-subdued">
+                      {isAr ? 'السعر المطلوب' : 'Prix affiché'}: {formatMAD(Number(offer.listing.prix_vente), i18n.language)}
+                    </p>
+                  )}
+                  {offer.message && (
+                    <p className="text-xs text-text-subdued italic mt-1">"{offer.message}"</p>
+                  )}
+                </div>
+                <div className="shrink-0 text-right">
+                  <span className={cn('badge text-[10px]', statutClass[offer.statut])}>
+                    {statutLabel[offer.statut] || offer.statut}
+                  </span>
+                  {offer.statut === 'en_attente' && (
+                    <div className="mt-2">
+                      <button onClick={() => handleCancel(offer.id)} className="text-xs text-red hover:underline">
+                        {isAr ? 'إلغاء' : 'Annuler'}
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
-              <div className="flex-1 min-w-0">
-                <p className="font-medium text-sm text-brown-dark truncate">{isAr ? `Ø¥Ø¹Ù„Ø§Ù† #${bid.listing_id}` : `Annonce #${bid.listing_id}`}</p>
-                <p className="text-xs text-brown-light/60">{isAr ? 'Ø¹Ø±Ø¶Ùƒ' : 'Votre offre'}: <span className="font-bold text-gold">{formatMAD(bid.montant, i18n.language)}</span></p>
-                {bid.auto_bid_max && (
-                  <p className="text-[10px] text-brown-light/50">{isAr ? 'Ø§Ù„Ø­Ø¯ Ø§Ù„Ø£Ù‚ØµÙ‰' : 'Max auto'}: {formatMAD(bid.auto_bid_max, i18n.language)}</p>
-                )}
-              </div>
-              <span className={cn('badge text-[10px]', bid.statut === 'gagnee' ? 'badge-green' : bid.statut === 'active' ? 'badge-gold' : 'badge-red')}>
-                {bid.statut === 'gagnee' ? (isAr ? 'ÙØ§Ø²' : 'GagnÃ©e') : bid.statut === 'active' ? (isAr ? 'Ù†Ø´Ø·Ø©' : 'Active') : (isAr ? 'Ø®Ø§Ø³Ø±Ø©' : 'Perdue')}
-              </span>
-            </Link>
+            </div>
           ))}
         </div>
       )}

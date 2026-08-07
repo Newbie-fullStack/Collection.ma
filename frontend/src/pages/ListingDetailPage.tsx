@@ -1,10 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Heart, Share2, Flag, Clock, User, ChevronLeft, ShoppingCart, MessageSquare } from 'lucide-react';
-import { listingsApi, bidsApi, favoritesApi, conversationsApi } from '@/api';
+import { Heart, Share2, Flag, Clock, User, ChevronLeft, ShoppingCart, MessageSquare, Trophy, BadgeCheck } from 'lucide-react';
+import { listingsApi, bidsApi, favoritesApi, conversationsApi, offersApi } from '@/api';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCart } from '@/contexts/CartContext';
+import { useToast } from '@/contexts/ToastContext';
+import { subscribeToListing, subscribeToListingWon } from '@/lib/echo';
+import { useListingSeo } from '@/lib/seo';
 import { formatMAD, getRemainingTime, cn } from '@/lib/utils';
 import type { Listing } from '@/types';
 
@@ -15,10 +18,18 @@ export function ListingDetailPage() {
   const { isAuthenticated, user } = useAuth();
   const navigate = useNavigate();
   const { addItem } = useCart();
+  const { toast } = useToast();
   const [listing, setListing] = useState<Listing | null>(null);
   const [loading, setLoading] = useState(true);
   const [bidAmount, setBidAmount] = useState('');
   const [isFavori, setIsFavori] = useState(false);
+  const [liveBids, setLiveBids] = useState<{ id: number; pseudo: string; montant: number }[]>([]);
+  const [offerOpen, setOfferOpen] = useState(false);
+  const [offerAmount, setOfferAmount] = useState('');
+  const [offerMessage, setOfferMessage] = useState('');
+  const [submittingOffer, setSubmittingOffer] = useState(false);
+
+  useListingSeo(listing);
 
   const handleContactSeller = async () => {
     if (!isAuthenticated || !listing?.seller) return;
@@ -41,14 +52,45 @@ export function ListingDetailPage() {
       .finally(() => setLoading(false));
   }, [numero_auto]);
 
+  const isExpired = listing ? !!listing.date_expiration && new Date(listing.date_expiration).getTime() <= Date.now() : false;
+
   useEffect(() => {
     if (!listing?.date_expiration) return;
     const interval = setInterval(() => {
       setRemaining(getRemainingTime(listing.date_expiration));
-    }, 60000);
+    }, 1000);
     setRemaining(getRemainingTime(listing.date_expiration));
     return () => clearInterval(interval);
   }, [listing?.date_expiration]);
+
+  useEffect(() => {
+    if (!listing || listing.mode !== 'enchere' || !isAuthenticated) return;
+
+    const listingId = listing.id;
+    const channel = subscribeToListing(listingId, (data) => {
+      const bidderPseudo = String(data.bidder_pseudo ?? '');
+      if (bidderPseudo === user?.pseudo) return;
+
+      const newPrice = Number(data.montant ?? listing.prix_actuel);
+      setListing((prev) => prev ? { ...prev, prix_actuel: newPrice } : prev);
+      setLiveBids((prev) => [
+        { id: Number(data.bid_id), pseudo: bidderPseudo, montant: newPrice },
+        ...prev,
+      ]);
+      setRemaining(getRemainingTime(listing.date_expiration));
+      toast('info', `${bidderPseudo} ${t('listing.offre_vivante')} ${formatMAD(newPrice, i18n.language)}`);
+    });
+
+    subscribeToListingWon(listingId, (data) => {
+      const prix = Number(data.prix_final ?? listing.prix_actuel);
+      toast('success', `${isAr ? 'انتهى المزاد!' : t('listing.enchere_terminee')} — ${formatMAD(prix, i18n.language)}`);
+      setListing((prev) => prev ? { ...prev, statut: 'vendue', prix_actuel: prix } : prev);
+    });
+
+    return () => {
+      channel.stopListening('.bid.placed');
+    };
+  }, [listing?.id, listing?.mode, isAuthenticated, user?.pseudo]);
 
   const handleBid = async () => {
     if (!listing || !bidAmount) return;
@@ -57,8 +99,8 @@ export function ListingDetailPage() {
       const { data } = await listingsApi.get(listing.id);
       setListing(data);
       setBidAmount('');
-    } catch (err) {
-      console.error(err);
+    } catch (err: any) {
+      toast('error', err?.response?.data?.message ?? 'Erreur');
     }
   };
 
@@ -69,6 +111,26 @@ export function ListingDetailPage() {
       setIsFavori(data.favori);
     } catch (err) {
       console.error(err);
+    }
+  };
+
+  const submitOffer = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!listing || !offerAmount) return;
+    setSubmittingOffer(true);
+    try {
+      await offersApi.create(listing.id, {
+        montant: parseFloat(offerAmount),
+        message: offerMessage.trim() || undefined,
+      });
+      toast('success', isAr ? 'تم إرسال عرضك' : t('listing.offre_envoyee'));
+      setOfferAmount('');
+      setOfferMessage('');
+      setOfferOpen(false);
+    } catch (err: any) {
+      toast('error', err?.response?.data?.message ?? 'Erreur');
+    } finally {
+      setSubmittingOffer(false);
     }
   };
 
@@ -168,18 +230,57 @@ export function ListingDetailPage() {
           </div>
 
           {/* Countdown for auctions */}
-          {listing.mode === 'enchere' && remaining && (
-            <div className={cn('flex items-center gap-2 mb-4 text-red font-medium', isAr && 'flex-row-reverse')}>
+          {listing.mode === 'enchere' && (
+            <div className={cn('flex items-center gap-2 mb-4 font-medium', isExpired ? 'text-text-subdued' : 'text-red', isAr && 'flex-row-reverse')}>
               <Clock className="w-5 h-5" />
-              <span>
-                {t('listing.temps_restant')}: {remaining.jours}j {remaining.heures}h {remaining.minutes}min
-              </span>
+              {remaining ? (
+                <span>
+                  {t('listing.temps_restant')}: {remaining.jours}j {remaining.heures}h {remaining.minutes}min {remaining.secondes}s
+                </span>
+              ) : (
+                <Trophy className="w-5 h-5" />
+              )}
+              {!remaining && (
+                <span>
+                  {listing.statut === 'vendue'
+                    ? (isAr ? 'انتهى المزاد' : t('listing.enchere_terminee'))
+                    : (isAr ? 'انتهى الوقت' : t('listing.enchere_terminee'))}
+                </span>
+              )}
+            </div>
+          )}
+
+          {/* Live bids history */}
+          {(liveBids.length > 0 || (listing.bids && listing.bids.length > 0)) && (
+            <div className="mb-4 border border-gold/15 rounded-lg p-3 max-h-48 overflow-y-auto">
+              <div className="text-xs font-medium text-text-subdued uppercase tracking-wide mb-2">
+                {isAr ? 'آخر العروض' : t('listing.historique_offres')}
+              </div>
+              <ul className="space-y-1.5">
+                {[...liveBids, ...(listing.bids ?? []).map((b) => ({
+                  id: b.id,
+                  pseudo: b.bidder?.pseudo ?? '—',
+                  montant: Number(b.montant),
+                }))].slice(0, 10).map((b) => (
+                  <li key={b.id} className="flex items-center justify-between text-sm">
+                    <span className="text-cream">{b.pseudo}</span>
+                    <span className="text-gold font-medium">{formatMAD(b.montant, i18n.language)}</span>
+                  </li>
+                ))}
+              </ul>
             </div>
           )}
 
           {/* Bid form */}
           {listing.mode === 'enchere' && (
             <div className="mb-4">
+              {!remaining ? (
+                <div className="flex items-center gap-2 text-text-subdued font-medium">
+                  <Trophy className="w-5 h-5" />
+                  {t('listing.enchere_terminee')}
+                </div>
+              ) : (
+                <>
               <label className="text-sm font-medium text-cream mb-1 block">
                 {t('listing.votre_offre')} (min: {formatMAD(minBid, i18n.language)})
               </label>
@@ -199,6 +300,8 @@ export function ListingDetailPage() {
               <p className="text-xs text-text-subdued mt-1">
                 {listing.bids ? t('listing.nb_offres', { count: listing.bids.length }) : ''}
               </p>
+                </>
+              )}
             </div>
           )}
 
@@ -219,6 +322,64 @@ export function ListingDetailPage() {
               >
                 {isAr ? 'شراء الآن' : 'Acheter maintenant'}
               </Link>
+            </div>
+          )}
+
+          {/* Make an offer (negotiation) */}
+          {listing.mode === 'achat_immediat' && (
+            <div className="mb-4 border border-gold/15 rounded-lg p-4">
+              <div className={cn('flex items-center justify-between', isAr && 'flex-row-reverse')}>
+                <div className="text-sm font-semibold text-cream">
+                  {isAr ? 'تقديم عرض' : t('listing.faire_offre')}
+                </div>
+                <button
+                  onClick={() => setOfferOpen(v => !v)}
+                  className="text-xs text-gold hover:underline"
+                >
+                  {offerOpen ? (isAr ? 'إخفاء' : 'Fermer') : (isAr ? 'عرض' : 'Ouvrir')}
+                </button>
+              </div>
+              {offerOpen && (
+                <form
+                  onSubmit={submitOffer}
+                  className="mt-3 space-y-3"
+                >
+                  <div>
+                    <label className="block text-xs text-text-subdued mb-1">
+                      {isAr ? 'مبلغ عرضك' : 'Montant de votre offre'} (max: {formatMAD(listing.prix_vente, i18n.language)})
+                    </label>
+                    <input
+                      type="number"
+                      value={offerAmount}
+                      onChange={(e) => setOfferAmount(e.target.value)}
+                      min={1}
+                      max={listing.prix_vente}
+                      className="input-field w-full"
+                      placeholder={isAr ? 'أدخل المبلغ' : 'Saisissez le montant'}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm text-text-subdued mb-1">
+                      {isAr ? 'رسالة (اختياري)' : 'Message (optionnel)'}
+                    </label>
+                    <textarea
+                      value={offerMessage}
+                      onChange={(e) => setOfferMessage(e.target.value)}
+                      className="input-field w-full"
+                      rows={2}
+                      maxLength={500}
+                      placeholder={isAr ? 'أضف رسالة للبائع' : 'Ajoutez un message au vendeur'}
+                    />
+                  </div>
+                  <button
+                    type="submit"
+                    disabled={!offerAmount || submittingOffer}
+                    className="btn-gold-outline w-full"
+                  >
+                    {submittingOffer ? '...' : (isAr ? 'إرسال العرض' : 'Envoyer l\'offre')}
+                  </button>
+                </form>
+              )}
             </div>
           )}
 
@@ -252,7 +413,15 @@ export function ListingDetailPage() {
                   <User className="w-5 h-5 text-gold" />
                 </div>
                 <div className="flex-1">
-                  <div className="font-medium text-cream">{listing.seller.pseudo}</div>
+                  <div className="font-medium text-cream flex items-center gap-1.5">
+                    {listing.seller.pseudo}
+                    {listing.seller.est_verifie && (
+                      <span className="inline-flex items-center gap-0.5 text-[11px] text-green">
+                        <BadgeCheck className="w-3.5 h-3.5" />
+                        {isAr ? 'متحقق' : 'Vérifié'}
+                      </span>
+                    )}
+                  </div>
                   <div className="text-xs text-text-subdued">
                     {isAr ? 'البائع' : 'Vendeur'} • ⭐ {listing.nb_vues} {t('listing.nb_vues', { count: listing.nb_vues })}
                   </div>
