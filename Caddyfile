@@ -18,22 +18,15 @@
 	# Single site root: the Laravel public directory also holds the SPA build.
 	root * /var/www/public
 
-	# ---- Laravel backend (API + health) ----
-	# Named matchers for the PHP front-controller routes.
+	# Laravel backend (API, health, auth). Handled first.
 	@backend path /api/* /up /sanctum/*
-	route {
-		handle @backend {
-			php_server {
-				try_files {path} /index.php
-			}
-		}
+	php_server @backend {
+		try_files {path} /index.php
 	}
 
-	# ---- Uploaded media + SPA assets: serve real files, else SPA fallback ----
-	handle {
-		try_files {path} {path}/ /index.html
-		file_server
-	}
+	# Uploaded media + SPA assets: serve real files, else SPA fallback.
+	try_files {path} {path}/ /index.html
+	file_server
 
 	header {
 		Strict-Transport-Security max-age=31536000; includeSubDomains
